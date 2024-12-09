@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/auth.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/login_signup_page.dart';
@@ -5,7 +6,6 @@ import 'package:expense_tracker/screens/privacy_policy_page.dart';
 import 'package:expense_tracker/screens/terms_conditions_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'core/provider/theme_provider.dart';
@@ -31,7 +31,9 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'TrackUrSpends',
           debugShowCheckedModeBanner: false,
-          theme: themeProvider.themeData,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
           home: const AuthPage(),
           routes: {
             '/login': (context) => const LoginSignupPage(),

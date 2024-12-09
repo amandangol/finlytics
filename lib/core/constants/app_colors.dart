@@ -3,16 +3,20 @@ import 'package:flutter/material.dart';
 // Primary Color Palette
 // A soothing and balanced palette with soft blues, grays, and subtle accents
 class AppTheme {
-  static const Color primaryColor = Color(0xFF4A90E2); // Soft Blue
-  static const Color secondaryColor = Color(0xFFB3D1F4); // Light Blue
-  static const Color accentColor = Color(0xFF50E3C2); // Soft Teal
+  static const Color primaryColor =
+      Color(0xFF5C9EFF); // Softer, slightly lighter blue
+  static const Color secondaryColor =
+      Color(0xFF7AB8FF); // Lighter secondary blue
+  static const Color accentColor =
+      Color(0xFF4EDDC2); // Soft teal, slightly brighter
 
-  // Neutral Colors
-  static const Color backgroundColor = Color(0xFFF0F4F8); // Light Grayish Blue
-  static const Color surfaceColor = Colors.white;
-  static const Color cardColor = Color(0xFFEBF0F4); // Lighter Gray for cards
-  static const Color dividerColor =
-      Color(0xFFCBD6E2); // Light Gray for dividers
+  // Dark Theme Neutral Colors
+  static const Color backgroundColor =
+      Color(0xFF1E2330); // Deep but not pure black
+  static const Color surfaceColor =
+      Color(0xFF2A3040); // Slightly lighter than background
+  static const Color cardColor = Color(0xFF3A4250); // Lighter surface for cards
+  static const Color dividerColor = Color(0xFF4A5364); // Lighter divider
 
   // Text Colors
   static const Color darkTextColor = Color(0xFF2C3E50); // Charcoal Gray

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/provider/theme_provider.dart';
 import '../../../../core/utils/category_helper.dart';
 import '../../../../models.dart';
-import '../../../transaction/presentation/pages/transaction_details_page.dart';
-import '../widgets/welcome_card.dart';
+import '../../../transaction/presentation/pages/transaction_details/transaction_details_page.dart';
 
 class RedesignedHomeContent extends StatefulWidget {
   final UserModel userModel;
@@ -40,32 +41,8 @@ class RedesignedHomeContent extends StatefulWidget {
 
 class _RedesignedHomeContentState extends State<RedesignedHomeContent>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
   int _touchedIndex = -1;
-  bool _isDarkMode = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _toggleDarkMode() {
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-    });
-  }
-
-  // Enhanced greeting method with more dynamic messaging
   String _getGreeting() {
     final hour = DateTime.now().hour;
     final name = widget.userModel.username.split(' ').first;
@@ -79,23 +56,11 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
     }
   }
 
-  // Method to get a motivational financial quote
-  String _getMotivationalQuote() {
-    final quotes = [
-      'Your wealth is where your attention goes',
-      'Small steps, big financial goals',
-      'Budget today, freedom tomorrow',
-      'Every rupee saved is a rupee earned',
-      'Financial freedom starts with a plan'
-    ];
-
-    // Use the current minute to pseudo-randomly select a quote
-    final index = DateTime.now().minute % quotes.length;
-    return quotes[index];
-  }
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final _isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     final backgroundColor = _isDarkMode
         ? AppTheme.darkTheme.scaffoldBackgroundColor
         : AppTheme.lightTheme.scaffoldBackgroundColor;
@@ -107,6 +72,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
     final textColor =
         _isDarkMode ? AppTheme.lightTextColor : AppTheme.darkTextColor;
 
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Theme(
       data: _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
       child: Scaffold(
@@ -114,91 +81,6 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
         body: SafeArea(
           child: CustomScrollView(
             slivers: [
-              SliverAppBar(
-                pinned: false,
-                floating: true,
-                expandedHeight: 160.0,
-                backgroundColor: backgroundColor,
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  titlePadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  title: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primaryColor.withOpacity(0.1),
-                          AppTheme.primaryColor.withOpacity(0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _getGreeting(),
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: textColor,
-                                  letterSpacing: 0.5,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(8),
-                              child: Icon(
-                                LucideIcons.star,
-                                color: AppTheme.primaryColor,
-                                size: 20,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _getMotivationalQuote(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: textColor.withOpacity(0.7),
-                            fontStyle: FontStyle.italic,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  )
-                      .animate()
-                      .fadeIn(duration: 600.ms)
-                      .slideY(begin: 0.1, end: 0, duration: 600.ms),
-                ),
-                actions: [
-                  IconButton(
-                    icon: Icon(
-                      _isDarkMode ? LucideIcons.sun : LucideIcons.moon,
-                      color: textColor,
-                    ),
-                    onPressed: _toggleDarkMode,
-                  ),
-                ],
-              ),
               SliverPadding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -295,6 +177,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
   }
 
   Widget _buildOverviewSection(Color cardColor, Color textColor) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -329,7 +213,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
           ),
           Divider(
             height: 1,
-            color: _isDarkMode ? Colors.white24 : Colors.grey.shade300,
+            color: isDarkMode ? Colors.white24 : Colors.grey.shade300,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
@@ -353,6 +237,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
   }
 
   Widget _buildPeriodDropdown(Color textColor) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -361,8 +247,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
       ),
       child: DropdownButton<String>(
         value: widget.selectedPeriod,
-        dropdownColor:
-            _isDarkMode ? AppTheme.darkTheme.cardColor : Colors.white,
+        dropdownColor: isDarkMode ? AppTheme.darkTheme.cardColor : Colors.white,
         underline: const SizedBox(),
         icon: Icon(LucideIcons.chevronDown, color: textColor),
         items: ['Today', 'This Week', 'This Month', 'Overall']
@@ -439,6 +324,9 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
   }
 
   Widget _buildPieChart() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -448,9 +336,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
             'Expenses by Category',
             style: AppTheme.textTheme.displayMedium?.copyWith(
               fontSize: 18,
-              color: _isDarkMode
-                  ? AppTheme.lightTextColor
-                  : AppTheme.darkTextColor,
+              color:
+                  isDarkMode ? AppTheme.lightTextColor : AppTheme.darkTextColor,
             ),
           ),
           const SizedBox(height: 16),
@@ -459,9 +346,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                   child: Text(
                     'No expense data available',
                     style: AppTheme.textTheme.bodyMedium?.copyWith(
-                      color: _isDarkMode
-                          ? Colors.white54
-                          : AppTheme.lightTextColor,
+                      color:
+                          isDarkMode ? Colors.white54 : AppTheme.lightTextColor,
                     ),
                   ),
                 )
@@ -482,14 +368,14 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                                 if (!event.isInterestedForInteractions ||
                                     pieTouchResponse == null ||
                                     pieTouchResponse.touchedSection == null) {
+                                  setState(() {
+                                    _touchedIndex = -1;
+                                  });
                                   return;
                                 }
-                                final touchedSection =
-                                    pieTouchResponse.touchedSection!;
-                                final touchedIndex =
-                                    touchedSection.touchedSectionIndex;
                                 setState(() {
-                                  _touchedIndex = touchedIndex;
+                                  _touchedIndex = pieTouchResponse
+                                      .touchedSection!.touchedSectionIndex;
                                 });
                               },
                             ),
@@ -520,7 +406,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                                   style:
                                       AppTheme.textTheme.bodyMedium?.copyWith(
                                     fontSize: 14,
-                                    color: _isDarkMode
+                                    color: isDarkMode
                                         ? AppTheme.lightTextColor
                                         : AppTheme.darkTextColor,
                                   ),
@@ -546,11 +432,12 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
     final totalAmount = widget.expenseByCategory.values
         .fold(0.0, (sum, amount) => sum + amount);
 
-    return widget.expenseByCategory.keys.map((category) {
+    final categoryList = widget.expenseByCategory.keys.toList();
+
+    return categoryList.map((category) {
       final amount = widget.expenseByCategory[category]!;
       final percentage = (amount / totalAmount) * 100;
-      final isTouched = _touchedIndex ==
-          widget.expenseByCategory.keys.toList().indexOf(category);
+      final isTouched = _touchedIndex == categoryList.indexOf(category);
       final double radius = isTouched ? 70 : 60;
 
       return PieChartSectionData(
@@ -573,6 +460,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
   }
 
   Widget _buildTransactionList(Color textColor) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -608,7 +497,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
               child: Text(
                 'No recent transactions',
                 style: AppTheme.textTheme.bodyMedium?.copyWith(
-                  color: _isDarkMode ? Colors.white54 : AppTheme.lightTextColor,
+                  color: isDarkMode ? Colors.white54 : AppTheme.lightTextColor,
                 ),
               ),
             ),
@@ -650,7 +539,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                   transaction.category!,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: _isDarkMode
+                    color: isDarkMode
                         ? AppTheme.lightTextColor
                         : AppTheme.darkTextColor,
                   ),
@@ -658,7 +547,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                 subtitle: Text(
                   transaction.details.toString(),
                   style: TextStyle(
-                    color: _isDarkMode ? Colors.white54 : Colors.grey.shade600,
+                    color: isDarkMode ? Colors.white54 : Colors.grey.shade600,
                     fontSize: 12,
                   ),
                 ),

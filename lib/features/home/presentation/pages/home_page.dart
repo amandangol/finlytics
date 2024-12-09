@@ -1,11 +1,11 @@
-import 'package:expense_tracker/features/home/presentation/components/home_app_bar.dart';
+import 'package:expense_tracker/features/home/presentation/components/custom_appbar.dart';
 import 'package:expense_tracker/features/home/presentation/widgets/custom_navigation_bar.dart';
 import 'package:expense_tracker/screens/turs_ai_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
-import '../../../transaction/presentation/pages/transaction_list_page.dart';
+import '../../../transaction/presentation/pages/transaction_list/transaction_list_page.dart';
 import '../../../transaction/data/transaction_service.dart';
 import '../../data/usecases/user_service.dart';
 import '../widgets/welcome_card.dart';
@@ -13,7 +13,7 @@ import 'home_content.dart';
 import '../widgets/accounts_dialog.dart';
 import '../widgets/username_input_dialog.dart';
 import '../../../../models.dart';
-import '../../../transaction/presentation/pages/add_transaction_page.dart';
+import '../../../transaction/presentation/pages/add_transaction/add_transaction_page.dart';
 import '../../../charts/presentation/pages/charts_page.dart';
 // Import the HomeAppBar
 

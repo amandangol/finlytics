@@ -8,10 +8,10 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/category_helper.dart';
-import '../../../../models.dart';
-import 'transaction_details_page.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/utils/category_helper.dart';
+import '../../../../../models.dart';
+import '../transaction_details/transaction_details_page.dart';
 
 class TransactionListPage extends StatefulWidget {
   final String userId;
