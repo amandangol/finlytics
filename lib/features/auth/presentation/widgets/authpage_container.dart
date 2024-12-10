@@ -6,10 +6,10 @@ class AuthPageContainer extends StatelessWidget {
   final String pageTitle;
 
   const AuthPageContainer({
-    Key? key,
+    super.key,
     required this.child,
     required this.pageTitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +23,8 @@ class AuthPageContainer extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF4CAF50), // Green for financial health
-                  Color(0xFF0D47A1), // Blue for trustworthiness
+                  Color(0xFF4CAF50),
+                  Color(0xFF0D47A1),
                 ],
               ),
             ),
@@ -54,28 +54,17 @@ class AuthPageContainer extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // App Logo
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  child: Image.asset(
-                    "assets/images/finlogo.png",
-                    height: 60,
-                    color: Colors.white,
-                  ),
-                )
-                    .animate()
-                    .fade(duration: 300.ms)
-                    .scale(begin: Offset(0.8, 0.8), end: Offset(1, 1)),
+                Image.asset(
+                  "assets/images/finlylogo.png",
+                  height: 150,
+                ).animate().fade(duration: 300.ms).scale(
+                    begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // App Title
                 Text(
-                  pageTitle!,
+                  pageTitle,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -99,7 +88,6 @@ class AuthPageContainer extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
-                // Login Form (Glassmorphism Card)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32.0),
                   child: Container(
@@ -128,63 +116,6 @@ class AuthPageContainer extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AuthTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String labelText;
-  final IconData prefixIcon;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final TextInputType? keyboardType;
-
-  const AuthTextField({
-    Key? key,
-    required this.controller,
-    required this.labelText,
-    required this.prefixIcon,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.keyboardType,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 16,
-      ),
-      decoration: InputDecoration(
-        labelText: labelText,
-        labelStyle: TextStyle(
-          color: Colors.white.withOpacity(0.8),
-          fontSize: 14,
-        ),
-        prefixIcon: Icon(
-          prefixIcon,
-          color: Colors.white,
-        ),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.5),
-            width: 2,
-          ),
-        ),
       ),
     );
   }

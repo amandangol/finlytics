@@ -1,5 +1,7 @@
-import 'package:expense_tracker/models.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../../../core/constants/app_colors.dart';
+import '../../../../../../models/account_model.dart';
 
 class AccountDropdownWidget extends StatelessWidget {
   final List<Account> accounts;
@@ -20,14 +22,29 @@ class AccountDropdownWidget extends StatelessWidget {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: decoration,
-      items: accounts
-          .map((account) => DropdownMenuItem<String>(
-                value: account.name,
-                child: Text(account.name),
-              ))
-          .toList(),
+      dropdownColor: AppTheme.cardColor, // Custom dropdown background
+      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.primaryColor),
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppTheme.darkTextColor,
+          ),
+      borderRadius: BorderRadius.circular(12),
+      items: accounts.map((Account account) {
+        return DropdownMenuItem<String>(
+          value: account.name,
+          child: Row(
+            children: [
+              Text('${account.name} - ₹${account.balance.toStringAsFixed(2)}'),
+            ],
+          ),
+        );
+      }).toList(),
       onChanged: onChanged,
-      validator: (val) => val == null ? 'Please select an account' : null,
+      validator: (value) {
+        if (value == null) {
+          return 'Please select an account';
+        }
+        return null;
+      },
     );
   }
 }

@@ -1,24 +1,24 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:expense_tracker/core/common/custom_appbar.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../../../models/transaction_model.dart';
 
-import '../../../../models.dart';
-
-class ImprovedChartsPage extends StatefulWidget {
+class FinancialInsightsPage extends StatefulWidget {
   final List<TransactionModel> allTransactions;
   final String userId;
 
-  const ImprovedChartsPage(
+  const FinancialInsightsPage(
       {super.key, required this.allTransactions, required this.userId});
 
   @override
-  _ImprovedChartsPageState createState() => _ImprovedChartsPageState();
+  _FinancialInsightsPageState createState() => _FinancialInsightsPageState();
 }
 
-class _ImprovedChartsPageState extends State<ImprovedChartsPage>
+class _FinancialInsightsPageState extends State<FinancialInsightsPage>
     with SingleTickerProviderStateMixin {
   List<TransactionModel> _transactions = [];
   List<TransactionModel> _filteredTransactions = [];
@@ -147,18 +147,7 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          'Financial Insights',
-          style: TextStyle(
-            color: Color(0xFFEF6C06),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppTheme.surfaceColor,
-        elevation: 0,
-        centerTitle: true,
-      ),
+      appBar: const CustomAppBar(title: "Financial Insights"),
       body: Column(
         children: [
           _buildFilterSection(),
@@ -204,7 +193,7 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
                             label: Text(period),
                             selected: _selectedPeriod == period,
                             onSelected: (_) => _filterTransactions(period),
-                            selectedColor: const Color(0xFFEF6C06),
+                            selectedColor: AppTheme.primaryLightColor,
                             backgroundColor: Colors.grey[200],
                             labelStyle: TextStyle(
                               color: _selectedPeriod == period
@@ -215,12 +204,11 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
                                   : FontWeight.normal,
                             ),
                           ),
-                        ))
-                    ,
+                        )),
                 IconButton(
                   icon: const Icon(
                     Icons.calendar_today,
-                    color: Color(0xFFEF6C06),
+                    color: AppTheme.primaryLightColor,
                   ),
                   onPressed: () => _selectCustomDateRange(context),
                 ),
@@ -321,50 +309,10 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
             child: Text(
               title,
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFEF6C06),
-              ),
-            ),
-          ),
-          chart,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChartContainer(String title, Widget chart) {
-    return Container(
-      margin: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFEF6C06),
-                shadows: [
-                  Shadow(
-                    blurRadius: 10.0,
-                    color: Colors.black12,
-                    offset: Offset(1.0, 1.0),
-                  ),
-                ],
+                fontSize: 16,
+                letterSpacing: 1,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.primaryDarkColor,
               ),
             ),
           ),

@@ -1,13 +1,14 @@
 import 'package:expense_tracker/features/auth/presentation/pages/signin_page.dart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/error_utils.dart';
+import '../widgets/auth_textfield.dart';
 import '../widgets/authpage_container.dart';
 
 class SignupPage extends StatefulWidget {
-  const SignupPage({Key? key}) : super(key: key);
+  const SignupPage({super.key});
 
   @override
   _SignupPageState createState() => _SignupPageState();
@@ -170,7 +171,7 @@ class _SignupPageState extends State<SignupPage> {
                   });
                 },
               ),
-              Text(
+              const Text(
                 'I acknowledge the terms and conditions',
                 style: TextStyle(color: AppTheme.lightTextColor),
               ),
@@ -181,14 +182,19 @@ class _SignupPageState extends State<SignupPage> {
             onPressed: _isLoading ? null : _signup,
             style: AppTheme.elevatedButtonStyle,
             child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
+                ? const Center(
+                    child: SpinKitThreeBounce(
+                      color: AppTheme.primaryDarkColor,
+                      size: 20.0,
+                    ),
+                  )
                 : const Text('Sign Up'),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'Already have an account?',
                 style: TextStyle(
                     color: AppTheme.lightTextColor, letterSpacing: 0.5),
@@ -200,11 +206,12 @@ class _SignupPageState extends State<SignupPage> {
                     builder: (context) => const SigninPage(),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Login',
                   style: TextStyle(
                       color: AppTheme.lightTextColor,
                       fontWeight: FontWeight.bold,
+                      fontSize: 15,
                       letterSpacing: 1),
                 ),
               ),

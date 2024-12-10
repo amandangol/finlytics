@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../models.dart';
+import '../../../../models/account_model.dart';
+import '../../../../models/user_model.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -45,12 +46,6 @@ class UserService {
 
     await userDoc.update({
       'accounts': accounts,
-    });
-  }
-
-  Future<void> toggleReminders(String userId, bool haveReminders) async {
-    await _firestore.collection('users').doc(userId).update({
-      'haveReminders': haveReminders,
     });
   }
 }

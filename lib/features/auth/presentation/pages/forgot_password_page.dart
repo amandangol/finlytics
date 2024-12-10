@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/error_utils.dart';
+import '../widgets/auth_textfield.dart';
 import '../widgets/authpage_container.dart';
 import 'signin_page.dart.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({Key? key}) : super(key: key);
+  const ForgotPasswordPage({super.key});
 
   @override
   _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
@@ -83,14 +85,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             onPressed: _isLoading ? null : _resetPassword,
             style: AppTheme.elevatedButtonStyle,
             child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
+                ? const Center(
+                    child: SpinKitThreeBounce(
+                      color: AppTheme.primaryDarkColor,
+                      size: 20.0,
+                    ),
+                  )
                 : const Text('Reset Password'),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'Remember your password?',
                 style: TextStyle(
                   color: AppTheme.lightTextColor,
@@ -99,7 +106,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
+                child: const Text(
                   'Back to Login',
                   style: TextStyle(
                     color: Colors.white,

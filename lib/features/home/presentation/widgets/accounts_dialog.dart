@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../models.dart';
+import '../../../../models/account_model.dart';
 
 class AccountsDialog extends StatefulWidget {
   final List<Account> accounts;
@@ -11,13 +11,13 @@ class AccountsDialog extends StatefulWidget {
   final VoidCallback onSelectTotalBalance;
 
   const AccountsDialog({
-    Key? key,
+    super.key,
     required this.accounts,
     required this.onAddAccount,
     required this.onUpdateBalance,
     required this.onSelectAccount,
     required this.onSelectTotalBalance,
-  }) : super(key: key);
+  });
 
   @override
   _AccountsDialogState createState() => _AccountsDialogState();
@@ -70,12 +70,14 @@ class _AccountsDialogState extends State<AccountsDialog> {
             padding: const EdgeInsets.only(top: 8.0),
             child: Row(
               children: [
-                Icon(Icons.error_outline, color: AppTheme.errorColor, size: 18),
+                const Icon(Icons.error_outline,
+                    color: AppTheme.errorColor, size: 18),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     _errorMessage,
-                    style: TextStyle(color: AppTheme.errorColor, fontSize: 12),
+                    style: const TextStyle(
+                        color: AppTheme.errorColor, fontSize: 12),
                   ),
                 ),
               ],
@@ -96,7 +98,7 @@ class _AccountsDialogState extends State<AccountsDialog> {
           labelText: labelText,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: AppTheme.dividerColor),
+            borderSide: const BorderSide(color: AppTheme.dividerColor),
           ),
           isDense: true,
         ),

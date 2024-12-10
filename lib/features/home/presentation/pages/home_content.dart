@@ -6,11 +6,13 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/provider/theme_provider.dart';
 import '../../../../core/utils/category_helper.dart';
-import '../../../../models.dart';
+import '../../../../models/account_model.dart';
+import '../../../../models/transaction_model.dart';
+import '../../../../models/user_model.dart';
 import '../../../transaction/presentation/pages/transaction_details/transaction_details_page.dart';
 import '../widgets/welcome_card.dart';
 
-class RedesignedHomeContent extends StatefulWidget {
+class HomeContent extends StatefulWidget {
   final UserModel userModel;
   final Account? selectedAccount;
   final String selectedPeriod;
@@ -22,7 +24,7 @@ class RedesignedHomeContent extends StatefulWidget {
   final Function(String) onPeriodChanged;
   final VoidCallback onViewAllTransactions;
 
-  const RedesignedHomeContent({
+  const HomeContent({
     super.key,
     required this.userModel,
     this.selectedAccount,
@@ -37,25 +39,12 @@ class RedesignedHomeContent extends StatefulWidget {
   });
 
   @override
-  _RedesignedHomeContentState createState() => _RedesignedHomeContentState();
+  _HomeContentState createState() => _HomeContentState();
 }
 
-class _RedesignedHomeContentState extends State<RedesignedHomeContent>
+class _HomeContentState extends State<HomeContent>
     with SingleTickerProviderStateMixin {
   int _touchedIndex = -1;
-
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    final name = widget.userModel.username.split(' ').first;
-
-    if (hour < 12) {
-      return 'Rise & Shine, $name';
-    } else if (hour < 17) {
-      return 'Afternoon Boost, $name';
-    } else {
-      return 'Evening Vibes, $name';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,61 +62,57 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
     final textColor =
         isDarkMode0 ? AppTheme.lightTextColor : AppTheme.darkTextColor;
 
-    return Theme(
-      data: isDarkMode0 ? AppTheme.darkTheme : AppTheme.lightTheme,
-      child: Scaffold(
-        backgroundColor: backgroundColor,
-        body: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // SliverAppBar with a welcome message
-              SliverAppBar(
-                expandedHeight: 200,
-                floating: false,
-                pinned: false,
-                backgroundColor: const Color.fromARGB(255, 170, 221, 254),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(
-                            'https://media.istockphoto.com/id/1424757003/photo/budget-and-financial-planning-concept-including-a-management-or-executive-cfo-estimating-the.jpg?s=612x612&w=0&k=20&c=-qReHcxce_QnKsWlvV1x7jOndAAjPpiuFR7fZ7AUfQ0='), // Replace with your image path
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    "Finlytics",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w100,
-                      letterSpacing: 2,
-                      fontSize: 20,
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 200,
+              floating: false,
+              elevation: 0,
+              pinned: true,
+              backgroundColor: AppTheme.surfaceColor,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(
+                          'https://media.istockphoto.com/id/1424757003/photo/budget-and-financial-planning-concept-including-a-management-or-executive-cfo-estimating-the.jpg?s=612x612&w=0&k=20&c=-qReHcxce_QnKsWlvV1x7jOndAAjPpiuFR7fZ7AUfQ0='), // Replace with your image path
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
-              ),
-              SliverPadding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    WelcomeCard(
-                      userModel: widget.userModel,
-                      totalIncome: widget.totalIncome,
-                      totalExpense: widget.totalExpense,
-                      // isDarkMode: isDarkMode,
-                      // onToggleDarkMode: onToggleDarkMode,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildBalanceCard(cardColor, textColor),
-                    const SizedBox(height: 20),
-                    _buildOverviewSection(cardColor, textColor),
-                  ]),
+                title: const Text(
+                  "Finlytics",
+                  style: TextStyle(
+                    color: AppTheme.primaryDarkColor,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 2,
+                    fontSize: 20,
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  WelcomeCard(
+                    userModel: widget.userModel,
+                    totalIncome: widget.totalIncome,
+                    totalExpense: widget.totalExpense,
+                    // isDarkMode: isDarkMode,
+                    // onToggleDarkMode: onToggleDarkMode,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildBalanceCard(cardColor, textColor),
+                  const SizedBox(height: 20),
+                  _buildOverviewSection(cardColor, textColor),
+                ]),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -138,16 +123,15 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
       onTap: widget.onShowAccountsDialog,
       child: Container(
         decoration: BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.green.shade600, // Top color
+              Colors.blue.shade900, // Bottom color
+            ],
+          ),
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -174,14 +158,26 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              '₹${widget.selectedAccount != null ? widget.selectedAccount!.balance.toString() : widget.userModel.totalBalance}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
+            Row(
+              children: [
+                const Icon(
+                  Icons.savings_outlined,
+                  size: 26,
+                  color: AppTheme.secondaryColor,
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                Text(
+                  '${widget.selectedAccount != null ? widget.selectedAccount!.balance.toString() : widget.userModel.totalBalance}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             const Row(
@@ -281,7 +277,11 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
       ),
       child: DropdownButton<String>(
         value: widget.selectedPeriod,
-        dropdownColor: isDarkMode ? AppTheme.darkTheme.cardColor : Colors.white,
+        dropdownColor: AppTheme.cardColor,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.darkTextColor,
+            ),
+        borderRadius: BorderRadius.circular(12),
         underline: const SizedBox(),
         icon: Icon(LucideIcons.chevronDown, color: textColor),
         items: ['Today', 'This Week', 'This Month', 'Overall']
@@ -379,10 +379,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
               ? Center(
                   child: Text(
                     'No expense data available',
-                    style: AppTheme.textTheme.bodyMedium?.copyWith(
-                      color:
-                          isDarkMode ? Colors.white54 : AppTheme.lightTextColor,
-                    ),
+                    style: AppTheme.textTheme.bodyMedium
+                        ?.copyWith(color: AppTheme.primaryDarkColor),
                   ),
                 )
               : Row(
@@ -530,9 +528,8 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
             child: Center(
               child: Text(
                 'No recent transactions',
-                style: AppTheme.textTheme.bodyMedium?.copyWith(
-                  color: isDarkMode ? Colors.white54 : AppTheme.lightTextColor,
-                ),
+                style: AppTheme.textTheme.bodyMedium
+                    ?.copyWith(color: AppTheme.primaryDarkColor),
               ),
             ),
           )

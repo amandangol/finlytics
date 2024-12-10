@@ -4,9 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'auth.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../models/user_model.dart';
+import 'auth_page.dart';
 import '../../../../models.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -82,7 +85,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    "All your data (transactions, reminders, photos, etc.) will be deleted and cannot be recovered once you confirm this.",
+                    "All your data (transactions, photos, etc.) will be deleted and cannot be recovered once you confirm this.",
                     style: TextStyle(fontSize: 14, color: Colors.red),
                   ),
                   const SizedBox(height: 20),
@@ -156,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      "Account along with all your data (transactions, reminders, photos, etc.) will be deleted and cannot be recovered once you confirm this.\n"
+                      "Account along with all your data (transactions, photos, etc.) will be deleted and cannot be recovered once you confirm this.\n"
                       "If you have signed in with this account in multiple devices, make sure to sign out from all other devices for proper deletion of the account.",
                       style: TextStyle(fontSize: 14, color: Colors.red),
                     ),
@@ -258,8 +261,9 @@ class _ProfilePageState extends State<ProfilePage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEF6C06)),
+          child: SpinKitThreeBounce(
+            color: AppTheme.primaryDarkColor,
+            size: 20.0,
           ),
         );
       },
@@ -285,17 +289,6 @@ class _ProfilePageState extends State<ProfilePage> {
           .get();
       if (transactions.docs.isNotEmpty) {
         for (var doc in transactions.docs) {
-          batch.delete(doc.reference);
-        }
-      }
-
-      // Delete reminders
-      final reminders = await FirebaseFirestore.instance
-          .collection('reminders')
-          .where('userId', isEqualTo: uid)
-          .get();
-      if (reminders.docs.isNotEmpty) {
-        for (var doc in reminders.docs) {
           batch.delete(doc.reference);
         }
       }
@@ -331,14 +324,10 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       }
 
-      // Update haveReminders flag
-      userModel.haveReminders = false;
-
       // Update user document
       batch.update(userDocRef, {
         'accounts':
             userModel.accounts.map((account) => account.toMap()).toList(),
-        'haveReminders': userModel.haveReminders,
       });
 
       // Commit batch

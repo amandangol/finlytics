@@ -1,7 +1,9 @@
 import 'package:expense_tracker/features/auth/presentation/pages/signin_page.dart.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../home/presentation/pages/home_page.dart';
 
 class AuthPage extends StatefulWidget {
@@ -39,7 +41,11 @@ class _AuthPageState extends State<AuthPage> {
         builder: (context, snapshot) {
           if (isLoading) {
             return const Center(
-                child: CircularProgressIndicator(color: Color(0xFFEF6C06)));
+              child: SpinKitThreeBounce(
+                color: AppTheme.primaryDarkColor,
+                size: 20.0,
+              ),
+            );
           }
 
           // User logged in

@@ -2,13 +2,17 @@ import 'package:expense_tracker/core/common/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
-
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../models.dart';
+import '../../../../../core/utils/error_utils.dart';
 
+import '../../../../../models/photo_model.dart';
+import '../../../../../models/transaction_model.dart';
+import '../../../../../models/user_model.dart';
+import '../../../../home/presentation/pages/home_page.dart';
 import 'widgets/account_dropdown_widget.dart';
 import 'widgets/amount_input_widget.dart';
 import 'widgets/category_dropdown_widget.dart';
@@ -28,11 +32,16 @@ class AddTransactionPage extends StatefulWidget {
   _AddTransactionPageState createState() => _AddTransactionPageState();
 }
 
-class _AddTransactionPageState extends State<AddTransactionPage> {
+class _AddTransactionPageState extends State<AddTransactionPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _detailsController = TextEditingController();
   final _dateController = TextEditingController();
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   String _selectedType = 'Expense';
   String _selectedCategory = 'Bills';
@@ -44,6 +53,35 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controller
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    // Create fade animation
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Create slide animation
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuad,
+      ),
+    );
+
+    // Start the animation
+    _animationController.forward();
+
     _dateController.text = DateFormat('dd/MM/yyyy').format(_selectedDate);
 
     // Set default account if available
@@ -57,6 +95,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _amountController.dispose();
     _detailsController.dispose();
     _dateController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -132,27 +171,35 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   }
 
   Future<void> _submitTransaction() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final double amount = double.parse(_amountController.text);
-    final String details = _detailsController.text;
-
-    // Balance check for expenses
-    if (_selectedType == 'Expense') {
-      final selectedAccount = widget.userModel.accounts
-          .firstWhere((account) => account.name == _selectedAccount);
-      if (selectedAccount.balance < amount) {
-        _showAlertDialog('Insufficient Balance',
-            'The selected account has insufficient balance for this expense. Please add balance or select another account.');
+    try {
+      if (!_formKey.currentState!.validate()) {
+        setState(() {
+          _isSubmitting = false;
+        });
         return;
       }
-    }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+      final double amount = double.parse(_amountController.text);
+      final String details = _detailsController.text;
 
-    try {
+      // Balance check for expenses
+      if (_selectedType == 'Expense') {
+        final selectedAccount = widget.userModel.accounts
+            .firstWhere((account) => account.name == _selectedAccount);
+        if (selectedAccount.balance < amount) {
+          ErrorUtils.showSnackBar(
+            context: context,
+            message:
+                'Insufficient Balance. Please add balance or select another account.',
+            isError: true,
+          );
+          return;
+        }
+      }
+
+      setState(() {
+        _isSubmitting = true;
+      });
       // Upload photos
       List<String> photoUrls = [];
       for (var photo in _selectedPhotos) {
@@ -187,15 +234,34 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       } else {
         _updateAccountBalance(_selectedAccount, amount);
       }
-
-      Navigator.of(context).pop(true);
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const HomePage(),
+        ),
+      );
+      ErrorUtils.showSnackBar(
+        context: context,
+        message: 'Transaction added successfully!',
+        isError: false,
+        onVisible: () {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
+        },
+      );
     } catch (e) {
-      // Handle errors
-      _showAlertDialog(
-          'Error', 'Failed to submit transaction: ${e.toString()}');
       setState(() {
         _isSubmitting = false;
       });
+      ErrorUtils.showSnackBar(
+        context: context,
+        message: 'Failed to submit transaction: ${e.toString()}',
+        isError: true,
+      );
     }
   }
 
@@ -226,28 +292,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     });
   }
 
-  void _showAlertDialog(String title, String content) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          title,
-          style: const TextStyle(color: AppTheme.primaryColor),
-        ),
-        content: Text(content),
-        actions: [
-          TextButton(
-            child: const Text('OK',
-                style: TextStyle(color: AppTheme.primaryColor)),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -258,97 +302,126 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       ),
       body: _isSubmitting
           ? Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.primaryColor,
-                backgroundColor: theme.scaffoldBackgroundColor,
-              ),
+              child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.5, end: 1.0).animate(
+                    CurvedAnimation(
+                      parent: _animationController,
+                      curve: Curves.elasticOut,
+                    ),
+                  ),
+                  child: const Center(
+                    child: SpinKitThreeBounce(
+                      color: AppTheme.primaryDarkColor,
+                      size: 20.0,
+                    ),
+                  )),
             )
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AmountInputWidget(
-                        controller: _amountController,
-                        decoration: getCommonInputDecoration(context,
-                            labelText: 'Amount',
-                            prefixIcon: Icons.currency_rupee),
-                      ),
-                      const SizedBox(height: 16),
-                      DetailsInputWidget(
-                        controller: _detailsController,
-                        decoration: getCommonInputDecoration(context,
-                            labelText: 'Details', prefixIcon: Icons.notes),
-                      ),
-                      const SizedBox(height: 16),
-                      DateInputWidget(
-                        controller: _dateController,
-                        onTap: () => _pickDate(_selectedDate),
-                        decoration: getCommonInputDecoration(context,
-                            labelText: 'Date',
-                            prefixIcon: Icons.calendar_today),
-                      ),
-                      const SizedBox(height: 16),
-                      TypeDropdownWidget(
-                        value: _selectedType,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedType = newValue!;
-                          });
-                        },
-                        decoration: getCommonInputDecoration(context,
-                            labelText: 'Type', prefixIcon: Icons.swap_vert),
-                      ),
-                      const SizedBox(height: 16),
-                      CategoryDropdownWidget(
-                        value: _selectedCategory,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedCategory = newValue!;
-                          });
-                        },
-                        decoration: getCommonInputDecoration(context,
-                            labelText: 'Category', prefixIcon: Icons.category),
-                      ),
-                      const SizedBox(height: 16),
-                      AccountDropdownWidget(
-                        accounts: widget.userModel.accounts,
-                        value: _selectedAccount,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedAccount = newValue!;
-                          });
-                        },
-                        decoration: getCommonInputDecoration(context,
-                            labelText: 'Account',
-                            prefixIcon: Icons.account_balance_wallet),
-                      ),
-                      const SizedBox(height: 16),
-                      PhotoSectionWidget(
-                        selectedPhotos: _selectedPhotos,
-                        onCameraPressed: () => _pickImage(ImageSource.camera),
-                        onGalleryPressed: () => _pickImage(ImageSource.gallery),
-                        onPhotoRemoved: (index) {
-                          setState(() {
-                            _selectedPhotos.removeAt(index);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      SubmitButton(
-                        onPressed: _submitTransaction,
-                        child: Text(
-                          'Submit Transaction',
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: AppTheme.lightTextColor,
-                                  ),
-                        ),
-                      ),
-                    ],
+          : FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            AmountInputWidget(
+                              controller: _amountController,
+                              decoration: getCommonInputDecoration(context,
+                                  labelText: 'Amount', prefixIcon: Icons.money),
+                            ),
+                            const SizedBox(height: 16),
+                            DetailsInputWidget(
+                              controller: _detailsController,
+                              decoration: getCommonInputDecoration(context,
+                                  labelText: 'Details',
+                                  prefixIcon: Icons.notes),
+                            ),
+                            const SizedBox(height: 16),
+                            DateInputWidget(
+                              controller: _dateController,
+                              onTap: () => _pickDate(_selectedDate),
+                              decoration: getCommonInputDecoration(context,
+                                  labelText: 'Date',
+                                  prefixIcon: Icons.calendar_today),
+                            ),
+                            const SizedBox(height: 16),
+                            TypeDropdownWidget(
+                              value: _selectedType,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  _selectedType = newValue!;
+                                });
+                              },
+                              decoration: getCommonInputDecoration(context,
+                                  labelText: 'Type',
+                                  prefixIcon: Icons.swap_vert_sharp),
+                            ),
+                            const SizedBox(height: 16),
+                            CategoryDropdownWidget(
+                              value: _selectedCategory,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  _selectedCategory = newValue!;
+                                });
+                              },
+                              decoration: getCommonInputDecoration(context,
+                                  labelText: 'Category',
+                                  prefixIcon: Icons.category),
+                            ),
+                            const SizedBox(height: 16),
+                            AccountDropdownWidget(
+                              accounts: widget.userModel.accounts,
+                              value: _selectedAccount,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  _selectedAccount = newValue!;
+                                });
+                              },
+                              decoration: getCommonInputDecoration(context,
+                                  labelText: 'Account',
+                                  prefixIcon: Icons.account_balance_wallet),
+                            ),
+                            const SizedBox(height: 16),
+                            PhotoSectionWidget(
+                              selectedPhotos: _selectedPhotos,
+                              onCameraPressed: () =>
+                                  _pickImage(ImageSource.camera),
+                              onGalleryPressed: () =>
+                                  _pickImage(ImageSource.gallery),
+                              onPhotoRemoved: (index) {
+                                setState(() {
+                                  _selectedPhotos.removeAt(index);
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            AnimatedBuilder(
+                              animation: _animationController,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _fadeAnimation.value,
+                                  child: child,
+                                );
+                              },
+                              child: SubmitButton(
+                                onPressed: _submitTransaction,
+                                child: Text(
+                                  'Submit Transaction',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(
+                                        color: AppTheme.lightTextColor,
+                                      ),
+                                ),
+                              ),
+                            )
+                          ]),
+                    ),
                   ),
                 ),
               ),

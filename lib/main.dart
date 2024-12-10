@@ -1,15 +1,17 @@
-import 'package:expense_tracker/core/constants/app_colors.dart';
-import 'package:expense_tracker/features/auth/presentation/pages/auth.dart';
-import 'package:expense_tracker/features/auth/presentation/pages/forgot_password_page.dart';
-import 'package:expense_tracker/features/auth/presentation/pages/signin_page.dart.dart';
-import 'package:expense_tracker/screens/privacy_policy_page.dart';
-import 'package:expense_tracker/screens/terms_conditions_page.dart';
+import 'package:expense_tracker/features/intro/onboarding/presentation/onboarding_page.dart';
+import 'package:expense_tracker/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+
+import 'core/constants/app_colors.dart';
 import 'core/provider/theme_provider.dart';
-import 'firebase_options.dart';
+import 'features/auth/presentation/pages/forgot_password_page.dart';
+import 'features/auth/presentation/pages/signin_page.dart.dart';
+import 'features/intro/splash/splash_page.dart';
+import 'screens/privacy_policy_page.dart';
+import 'screens/terms_conditions_page.dart'; // New import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,12 +31,12 @@ class MyApp extends StatelessWidget {
       create: (_) => ThemeProvider(),
       child: Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'TrackUrSpends',
+          title: 'Finlytics', // Updated app name
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const AuthPage(),
+          home: const SplashScreen(), // Change home to SplashScreen
           routes: {
             '/login': (context) => const SigninPage(),
             '/forgot-password': (context) => const ForgotPasswordPage(),

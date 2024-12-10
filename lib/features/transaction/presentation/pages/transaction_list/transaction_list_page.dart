@@ -5,13 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:csv/csv.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/category_helper.dart';
-import '../../../../../models.dart';
+import '../../../../../models/transaction_model.dart';
 import '../transaction_details/transaction_details_page.dart';
 
 class TransactionListPage extends StatefulWidget {
@@ -641,7 +642,8 @@ class _TransactionListPageState extends State<TransactionListPage> {
         title: "Transactions",
         actions: [
           IconButton(
-            icon: const Icon(Icons.download_rounded, color: AppTheme.darkTextColor),
+            icon: const Icon(Icons.download_rounded,
+                color: AppTheme.darkTextColor),
             onPressed: _showDownloadDialog,
           ),
         ],
@@ -709,8 +711,9 @@ class _TransactionListPageState extends State<TransactionListPage> {
   Widget _buildTransactionList() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppTheme.primaryColor,
+        child: SpinKitThreeBounce(
+          color: AppTheme.primaryDarkColor,
+          size: 20.0,
         ),
       );
     }

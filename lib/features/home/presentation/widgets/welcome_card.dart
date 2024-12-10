@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-import '../../../../models.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../models/user_model.dart';
 
 class WelcomeCard extends StatelessWidget {
   final UserModel userModel;

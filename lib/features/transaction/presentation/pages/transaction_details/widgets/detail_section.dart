@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../../../../../../core/constants/app_colors.dart';
-import '../../../../../../models.dart';
+import '../../../../../../models/transaction_model.dart';
 
 class TransactionDetailSection extends StatelessWidget {
   final TransactionModel transaction;

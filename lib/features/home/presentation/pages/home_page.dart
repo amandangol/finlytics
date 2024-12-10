@@ -1,8 +1,13 @@
 import 'package:expense_tracker/features/home/presentation/widgets/custom_navigation_bar.dart';
-import 'package:expense_tracker/screens/turs_ai_page.dart';
+import 'package:expense_tracker/features/gemini_chat_ai/presentation/screens/gemini_chat_ai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../models/account_model.dart';
+import '../../../../models/transaction_model.dart';
+import '../../../../models/user_model.dart';
 import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../transaction/presentation/pages/transaction_list/transaction_list_page.dart';
 import '../../../transaction/data/transaction_service.dart';
@@ -10,9 +15,8 @@ import '../../data/usecases/user_service.dart';
 import 'home_content.dart';
 import '../widgets/accounts_dialog.dart';
 import '../widgets/username_input_dialog.dart';
-import '../../../../models.dart';
 import '../../../transaction/presentation/pages/add_transaction/add_transaction_page.dart';
-import '../../../charts/presentation/pages/charts_page.dart';
+import '../../../financial_insights/presentation/pages/financial_insights.dart';
 // Import the HomeAppBar
 
 class HomePage extends StatefulWidget {
@@ -40,12 +44,15 @@ class _HomePageState extends State<HomePage> {
   List<TransactionModel> recentTransactions = [];
   List<TransactionModel> allTransactions = [];
 
-  final TUrSAiPage _tursAiPage = const TUrSAiPage();
-
   @override
   void initState() {
     super.initState();
-    getUser();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getUser().then((_) {
+        // Immediately refresh transactions for the default period
+        _fetchTransactionsForPeriod(_selectedPeriod);
+      });
+    });
   }
 
   Future<void> getUser() async {
@@ -80,16 +87,38 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _refreshData() async {
+    try {
+      // Fetch user data again
+      await getUser();
+
+      // Refresh transactions for the current period
+      await _fetchTransactionsForPeriod(_selectedPeriod);
+
+      // Optional: Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Data refreshed successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      // Handle any errors during refresh
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to refresh data: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> promptUsernameInput(String userId) async {
-    String username = await showDialog(
-          context: context,
-          builder: (context) => UsernameInputDialog(userId: userId),
-        ) ??
-        '';
+    String? username = await UsernameBottomSheet.show(context, userId) ?? "";
 
     if (username.isNotEmpty) {
       await _userService.updateUsername(userId, username);
-      await getUser(); // Refresh user data after updating username
+      await getUser();
     }
   }
 
@@ -244,18 +273,19 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        // Replace the existing AppBar with HomeAppBar
-
         backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
           child: userModel == null
               ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFEF6C06),
-                    strokeWidth: 3,
+                  child: SpinKitThreeBounce(
+                    color: AppTheme.primaryDarkColor,
+                    size: 20.0,
                   ),
                 )
-              : _buildBody(),
+              : RefreshIndicator(
+                  onRefresh: _refreshData,
+                  child: _buildBody(),
+                ),
         ),
         bottomNavigationBar: SleekNavigationBar(
           selectedIndex: _selectedIndex,
@@ -274,7 +304,7 @@ class _HomePageState extends State<HomePage> {
         _selectedIndex == 2
             ? AddTransactionPage(userModel: userModel!)
             : Container(),
-        _selectedIndex == 3 ? _tursAiPage : Container(),
+        _selectedIndex == 3 ? GeminiAiPage() : Container(),
         ProfilePage(
           userModel: userModel!,
         )
@@ -286,7 +316,7 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: [
         Expanded(
-          child: RedesignedHomeContent(
+          child: HomeContent(
             userModel: userModel!,
             selectedAccount: selectedAccount,
             selectedPeriod: _selectedPeriod,
@@ -325,11 +355,15 @@ class _HomePageState extends State<HomePage> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-              child: CircularProgressIndicator(color: Color(0xFFEF6C06)));
+            child: SpinKitThreeBounce(
+              color: AppTheme.primaryDarkColor,
+              size: 20.0,
+            ),
+          );
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          return ImprovedChartsPage(
+          return FinancialInsightsPage(
             allTransactions: allTransactions,
             userId: user!.uid,
           );

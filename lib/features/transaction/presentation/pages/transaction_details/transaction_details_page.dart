@@ -3,9 +3,12 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/category_helper.dart';
-import '../../../../../models.dart';
+import '../../../../../models/photo_model.dart';
+import '../../../../../models/transaction_model.dart';
+import '../../../../../models/user_model.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 
@@ -129,7 +132,7 @@ class TransactionDetailsPage extends StatelessWidget {
 
     String selectedCategory = transaction.category;
 
-    bool edited = await showDialog(
+    bool? edited = await showDialog<bool>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -160,6 +163,11 @@ class TransactionDetailsPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<String>(
+                      dropdownColor: AppTheme.cardColor,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.darkTextColor,
+                          ),
+                      borderRadius: BorderRadius.circular(12),
                       value: selectedCategory,
                       decoration: InputDecoration(
                         labelText: 'Category',
@@ -269,6 +277,7 @@ class TransactionDetailsPage extends StatelessWidget {
                       'date': Timestamp.fromDate(newDate),
                     });
 
+                    // Close the dialog and return true
                     Navigator.of(context).pop(true);
                   },
                   style: AppTheme.elevatedButtonStyle,
@@ -281,8 +290,16 @@ class TransactionDetailsPage extends StatelessWidget {
       },
     );
 
-    if (edited) {
-      Navigator.of(context).pop(true);
+    // If the transaction was edited, update the local transaction object
+    if (edited == true) {
+      // Update the local transaction object to reflect the changes
+      transaction.category = selectedCategory;
+      transaction.details = detailsController.text;
+      transaction.date = Timestamp.fromDate(
+          DateFormat('dd/MM/yyyy').parse(dateController.text));
+
+      // Trigger a rebuild of the current page to show updated information
+      (context as Element).markNeedsBuild();
     }
   }
 
@@ -471,7 +488,12 @@ class TransactionDetailsPage extends StatelessWidget {
           future: _fetchTransactionPhotos(transaction.userId, transaction.id),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: SpinKitThreeBounce(
+                  color: AppTheme.primaryDarkColor,
+                  size: 20.0,
+                ),
+              );
             }
 
             if (!snapshot.hasData || snapshot.data!.isEmpty) {

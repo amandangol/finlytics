@@ -4,38 +4,42 @@ import '../../../../../../core/constants/app_colors.dart';
 InputDecoration getCommonInputDecoration(
   BuildContext context, {
   required String labelText,
-  required IconData prefixIcon,
-  bool isDarkMode = false,
+  final IconData? prefixIcon,
+  Color? fillColor,
 }) {
-  final theme = Theme.of(context);
   return InputDecoration(
     labelText: labelText,
-    labelStyle: theme.textTheme.bodyMedium?.copyWith(
-      color: isDarkMode ? Colors.white70 : theme.textTheme.bodyMedium?.color,
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(
-        color: isDarkMode ? Colors.white54 : AppTheme.primaryColor,
-      ),
-    ),
+    prefixIcon: Icon(prefixIcon, color: AppTheme.primaryColor),
+    fillColor: fillColor ?? AppTheme.cardColor.withOpacity(0.5),
+    filled: true,
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(
-        color: isDarkMode ? Colors.white30 : theme.hintColor,
+        color: AppTheme.primaryColor.withOpacity(0.3),
+        width: 1.5,
       ),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
         color: AppTheme.primaryColor,
         width: 2,
       ),
     ),
-    prefixIcon: Icon(
-      prefixIcon,
-      color: isDarkMode ? Colors.white : AppTheme.primaryColor,
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(
+        color: Colors.red,
+        width: 1.5,
+      ),
     ),
-    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(
+        color: Colors.red,
+        width: 2,
+      ),
+    ),
+    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
   );
 }

@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
-
 import '../../../../../../core/constants/app_colors.dart';
-import '../../../../../../models.dart';
+import '../../../../../../models/photo_model.dart';
+import '../../../../../../models/transaction_model.dart';
 
 class PhotoSection extends StatelessWidget {
   final TransactionModel transaction;
@@ -42,7 +43,12 @@ class PhotoSection extends StatelessWidget {
       future: fetchPhotos(transaction.userId, transaction.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: SpinKitThreeBounce(
+              color: AppTheme.primaryDarkColor,
+              size: 20.0,
+            ),
+          );
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error loading photos'));
         } else if (snapshot.data!.isEmpty) {

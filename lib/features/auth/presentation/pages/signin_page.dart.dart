@@ -1,15 +1,17 @@
 import 'package:expense_tracker/features/auth/presentation/pages/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:expense_tracker/features/auth/presentation/pages/auth.dart';
+import 'package:expense_tracker/features/auth/presentation/pages/auth_page.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/error_utils.dart';
+import '../widgets/auth_textfield.dart';
 import '../widgets/authpage_container.dart';
 import 'forgot_password_page.dart';
 
 class SigninPage extends StatefulWidget {
-  const SigninPage({Key? key}) : super(key: key);
+  const SigninPage({super.key});
 
   @override
   _SigninPageState createState() => _SigninPageState();
@@ -138,7 +140,7 @@ class _SigninPageState extends State<SigninPage>
                       });
                     },
                   ),
-                  Text('Remember me',
+                  const Text('Remember me',
                       style: TextStyle(
                           color: AppTheme.lightTextColor, letterSpacing: 0.5)),
                 ],
@@ -148,9 +150,9 @@ class _SigninPageState extends State<SigninPage>
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => ForgotPasswordPage()));
+                          builder: (context) => const ForgotPasswordPage()));
                 },
-                child: Text(
+                child: const Text(
                   'Forgot Password?',
                   style: TextStyle(
                       color: AppTheme.lightTextColor, letterSpacing: 0.5),
@@ -163,14 +165,19 @@ class _SigninPageState extends State<SigninPage>
             onPressed: _isLoading ? null : _login,
             style: AppTheme.elevatedButtonStyle,
             child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
+                ? const Center(
+                    child: SpinKitThreeBounce(
+                      color: AppTheme.primaryDarkColor,
+                      size: 20.0,
+                    ),
+                  )
                 : const Text('Login'),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 'Don\'t have an account?',
                 style: TextStyle(
                     color: AppTheme.lightTextColor, letterSpacing: 0.5),
@@ -182,10 +189,11 @@ class _SigninPageState extends State<SigninPage>
                     builder: (context) => const SignupPage(),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Sign Up',
                   style: TextStyle(
                       color: Colors.white,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1),
                 ),

@@ -1,25 +1,26 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dialog_flowtter/dialog_flowtter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../../../models/account_model.dart';
+import '../../../../models/transaction_model.dart';
+import '../../../../models/user_model.dart';
 
-import '../models.dart';
-
-class TUrSAiPage extends StatefulWidget {
-  const TUrSAiPage({super.key});
+class GeminiAiPage extends StatefulWidget {
+  const GeminiAiPage({super.key});
 
   @override
-  _TUrSAiPageState createState() => _TUrSAiPageState();
+  _GeminiAiPageState createState() => _GeminiAiPageState();
 }
 
-class _TUrSAiPageState extends State<TUrSAiPage> {
-  late DialogFlowtter dialogFlowtter;
+class _GeminiAiPageState extends State<GeminiAiPage> {
+  late GenerativeModel _geminiModel;
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   final int _maxMessageLength = 250;
@@ -29,14 +30,24 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
 
+  // Predefined query templates
+  final List<String> _predefinedQueries = [
+    "Analyze my recent expenses",
+    "Show my income vs expenses",
+    "Provide savings tips",
+    "Categorize my spending",
+    "Predict future expenses",
+  ];
+
   @override
   void initState() {
     super.initState();
-    DialogFlowtter.fromFile(
-      path: "assets/dialog_flow_auth.json",
-    ).then((instance) {
-      dialogFlowtter = instance;
-    });
+    // Initialize Gemini AI
+    // IMPORTANT: Replace 'YOUR_GEMINI_API_KEY' with your actual Gemini API key
+    _geminiModel = GenerativeModel(
+      model: 'gemini-1.5-flash',
+      apiKey: 'AIzaSyALcSdmiKasf9T6DxVT1x5C-CfRveNNBcs',
+    );
   }
 
   @override
@@ -46,7 +57,8 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
     super.dispose();
   }
 
-  void sendMessage(String text) async {
+  Future<void> sendMessage(String text,
+      {bool isPredefinedQuery = false}) async {
     if (text.isEmpty || text.length > _maxMessageLength) {
       setState(() {
         _warning = text.length > _maxMessageLength
@@ -59,110 +71,131 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
     setState(() {
       _warning = null;
       _isLoading = true;
-      _messages.add({
-        "message": Message(text: DialogText(text: [text])),
-        "isUserMessage": true
-      });
+      _messages.add({"message": text, "isUserMessage": true});
     });
 
     _controller.clear();
     _scrollToBottom();
 
-    DetectIntentResponse response = await dialogFlowtter.detectIntent(
-      queryInput: QueryInput(text: TextInput(text: text)),
-    );
+    try {
+      // Get current user
+      String userId = await getCurrentUserId();
 
-    if (response.message != null) {
+      // Prepare context-aware query
+      String enhancedQuery = await _prepareEnhancedQuery(text, userId);
+
+      // Send query to Gemini
+      final content = [Content.text(enhancedQuery)];
+      final response = await _geminiModel.generateContent(content);
+
       setState(() {
-        _messages.add({"message": response.message, "isUserMessage": false});
+        _messages.add({
+          "message": response.text ?? "I couldn't generate a response.",
+          "isUserMessage": false
+        });
+        _isLoading = false;
+      });
+
+      // Check for specific intents and perform actions
+      await _handleSpecificIntents(text, response.text ?? "");
+    } catch (e) {
+      setState(() {
+        _messages.add({
+          "message": "Sorry, I encountered an error: $e",
+          "isUserMessage": false
+        });
         _isLoading = false;
       });
     }
 
-    // Handle the intent responses here
-    if (response.queryResult?.intent?.displayName == "Add Transaction") {
-      final parameters = response.queryResult?.parameters;
-      var amount = parameters?['amount'] ?? 0.0;
-      final type = parameters?['type'] ?? 'Expense';
-      final category = parameters?['category'] ?? 'Other';
-      final account = parameters?['account'] ?? 'Main';
-
-      if (amount is int) {
-        amount = amount.toDouble();
-      }
-
-      try {
-        User? user = FirebaseAuth.instance.currentUser;
-        final transaction = TransactionModel(
-          id: '',
-          userId: user!.uid,
-          amount: amount,
-          type: type,
-          category: category,
-          details: '',
-          account: account,
-          havePhotos: false,
-        );
-
-        await FirebaseFirestore.instance
-            .collection('transactions')
-            .add(transaction.toDocument());
-
-        if (type == 'Expense') {
-          _updateAccountBalance(account, -amount);
-        } else {
-          _updateAccountBalance(account, amount);
-        }
-
-        setState(() {
-          _messages.add({
-            "message": Message(
-                text: DialogText(text: const [
-              "Transaction added successfully. Please restart the app after adding all transactions to view changes."
-            ])),
-            "isUserMessage": false
-          });
-        });
-      } catch (e) {
-        setState(() {
-          _messages.add({
-            "message": Message(
-                text: DialogText(text: const [
-              "Failed to add transaction. Please try again."
-            ])),
-            "isUserMessage": false
-          });
-        });
-      }
-    } else if (response.queryResult?.intent?.displayName ==
-        "Expense Guidance") {
-      String userId = await getCurrentUserId();
-      fetchTopTransactions(userId).then((transactions) {
-        if (transactions.isEmpty) {
-          setState(() {
-            _messages.add({
-              "message": Message(
-                  text: DialogText(text: const [
-                "You have no recent transactions. Please add some transactions to get personalized expense reduction advice."
-              ])),
-              "isUserMessage": false
-            });
-          });
-        } else {
-          String advice = generateExpenseReductionAdvice(transactions);
-          setState(() {
-            _messages.add({
-              "message": Message(
-                  text: DialogText(text: [
-                "Here are some personalized tips to help you reduce your expenses:\n$advice"
-              ])),
-              "isUserMessage": false
-            });
-          });
-        }
-      });
-    }
     _scrollToBottom();
+  }
+
+  Future<String> _prepareEnhancedQuery(
+      String originalQuery, String userId) async {
+    // Fetch recent transactions to provide context
+    List<Map<String, dynamic>> recentTransactions =
+        await fetchRecentTransactions(userId);
+
+    // Convert transactions to a readable format
+    String transactionsContext =
+        _formatTransactionsForGemini(recentTransactions);
+
+    // Enhance the original query with transaction context
+    return """
+    I'm using a personal finance app. Here's context about my recent transactions:
+    $transactionsContext
+
+    Query: $originalQuery
+
+    Please provide a helpful, detailed, and personalized response based on my recent financial activity.
+    """;
+  }
+
+  String _formatTransactionsForGemini(List<Map<String, dynamic>> transactions) {
+    if (transactions.isEmpty) return "No recent transactions found.";
+
+    return transactions.map((transaction) {
+      return "- ${transaction['type']} of ₹${transaction['amount']} in ${transaction['category']} on ${transaction['date']}";
+    }).join('\n');
+  }
+
+  Future<void> _handleSpecificIntents(String query, String response) async {
+    query = query.toLowerCase();
+    String userId = await getCurrentUserId();
+
+    if (query.contains("add transaction")) {
+      // Extract transaction details from Gemini's response
+      await _extractAndAddTransaction(response);
+    } else if (query.contains("savings tip") ||
+        query.contains("reduce expense")) {
+      // Log savings advice for future reference
+      await _logFinancialAdvice(userId, response);
+    }
+  }
+
+  Future<void> _extractAndAddTransaction(String response) async {
+    // Use Gemini to extract transaction details
+    // This is a simplified example and might need more robust parsing
+    RegExp amountRegex = RegExp(r'₹?(\d+(\.\d+)?)');
+    RegExp categoryRegex = RegExp(r'(Expense|Income)', caseSensitive: false);
+
+    double amount =
+        double.tryParse(amountRegex.firstMatch(response)?.group(1) ?? '0') ??
+            0.0;
+    String type = categoryRegex.firstMatch(response)?.group(1) ?? 'Expense';
+    String category = 'Other'; // Default category
+
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      final transaction = TransactionModel(
+        id: '',
+        userId: user!.uid,
+        amount: amount,
+        type: type,
+        category: category,
+        details: response,
+        account: 'Main',
+        havePhotos: false,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('transactions')
+          .add(transaction.toDocument());
+
+      // Update account balance
+      await _updateAccountBalance('Main', type == 'Expense' ? -amount : amount);
+    } catch (e) {
+      print('Error adding transaction: $e');
+    }
+  }
+
+  Future<void> _logFinancialAdvice(String userId, String advice) async {
+    await FirebaseFirestore.instance.collection('financial_advice').add({
+      'userId': userId,
+      'advice': advice,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<String> getCurrentUserId() async {
@@ -170,42 +203,18 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
     return user?.uid ?? '';
   }
 
-  Future<List<Map<String, dynamic>>> fetchTopTransactions(String userId) async {
+  Future<List<Map<String, dynamic>>> fetchRecentTransactions(
+      String userId) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('transactions')
         .where('userId', isEqualTo: userId)
-        .where('type', isEqualTo: "Expense")
         .orderBy('date', descending: true)
-        .limit(5)
+        .limit(10)
         .get();
 
     return querySnapshot.docs
         .map((doc) => doc.data() as Map<String, dynamic>)
         .toList();
-  }
-
-  String generateExpenseReductionAdvice(
-      List<Map<String, dynamic>> transactions) {
-    // Analyze the top transactions and generate expense reduction advice
-    double totalSpending =
-        transactions.fold(0, (sum, item) => sum + item['amount']);
-    String highestCategory = transactions
-        .fold<Map<String, double>>({}, (map, item) {
-          String category = item['category'];
-          map[category] = (map[category] ?? 0) + item['amount'];
-          return map;
-        })
-        .entries
-        .reduce((a, b) => a.value > b.value ? a : b)
-        .key;
-
-    return """
-  1. Your total spending in the last few transactions is ₹${totalSpending.toStringAsFixed(2)}. Try to keep a budget to monitor and control your expenses.
-  2. You spend the most on $highestCategory. Consider looking for cheaper alternatives or reducing the frequency of such expenses.
-  3. Plan your purchases and avoid impulsive buying. Make a list of essentials and stick to it.
-  4. Utilize discounts, cashback offers, and reward points to save on your regular expenses.
-  5. Track your spending regularly using TrackUrSpends to identify and eliminate unnecessary expenses.
-  """;
   }
 
   Future<void> _updateAccountBalance(String accountName, double amount) async {
@@ -248,8 +257,34 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
       body: Column(
         children: [
           Expanded(child: _buildMessageList()),
+          _buildPredefinedQueriesRow(),
           _buildInputField(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPredefinedQueriesRow() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Row(
+        children: _predefinedQueries.map((query) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFA726),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+              ),
+              onPressed: () => sendMessage(query, isPredefinedQuery: true),
+              child: Text(query, style: GoogleFonts.roboto()),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -261,34 +296,31 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Welcome to TUrS AI!",
+                  "Welcome to Gemini Finance Assistant!",
                   style:
                       GoogleFonts.roboto(fontSize: 18.0, color: Colors.black54),
                 ),
                 const SizedBox(height: 10.0),
                 Text(
-                  "Try adding an expense: 'Add expense of 50'",
+                  "Try asking about your finances",
                   style:
                       GoogleFonts.roboto(fontSize: 16.0, color: Colors.black45),
                 ),
                 const SizedBox(height: 5.0),
                 Text(
-                  "Or learn more: 'About App'",
+                  "Examples:",
                   style:
                       GoogleFonts.roboto(fontSize: 16.0, color: Colors.black45),
                 ),
-                const SizedBox(height: 20.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Hold mic to talk",
-                      style: GoogleFonts.roboto(
-                          fontSize: 14.0, color: Colors.black45),
-                    ),
-                    const SizedBox(width: 2.0),
-                    const Icon(Icons.mic, color: Colors.black45, size: 20),
-                  ],
+                Text(
+                  "- Analyze my recent expenses",
+                  style:
+                      GoogleFonts.roboto(fontSize: 14.0, color: Colors.black45),
+                ),
+                Text(
+                  "- Provide savings tips",
+                  style:
+                      GoogleFonts.roboto(fontSize: 14.0, color: Colors.black45),
                 ),
               ],
             ),
@@ -302,13 +334,13 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
                 return _buildLoadingIndicator();
               }
               var message = _messages[index];
-              return _buildMessageItem(message["message"] as Message,
+              return _buildMessageItem(message["message"].toString(),
                   message["isUserMessage"] as bool);
             },
           );
   }
 
-  Widget _buildMessageItem(Message message, bool isUserMessage) {
+  Widget _buildMessageItem(String message, bool isUserMessage) {
     return Align(
       alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -339,7 +371,7 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
           ],
         ),
         child: Text(
-          message.text?.text?.first ?? '',
+          message,
           style: GoogleFonts.roboto(
             fontSize: 16.0,
             color: isUserMessage ? Colors.white : Colors.black87,
@@ -349,6 +381,7 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
     );
   }
 
+  // Speech-to-text methods remain the same as in the previous implementation
   Future<void> _checkPermissionAndListen() async {
     if (Platform.isAndroid || Platform.isIOS) {
       var status = await Permission.microphone.request();
@@ -364,10 +397,7 @@ class _TUrSAiPageState extends State<TUrSAiPage> {
 
   void _startListening() async {
     if (!_isListening) {
-      bool available = await _speech.initialize(
-          // onStatus: (val) => print('onStatus: $val'),
-          // onError: (val) => print('onError: $val'),
-          );
+      bool available = await _speech.initialize();
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(

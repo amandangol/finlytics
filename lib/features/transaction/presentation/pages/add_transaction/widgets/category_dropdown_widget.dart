@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/utils/category_helper.dart';
 
 class CategoryDropdownWidget extends StatelessWidget {
@@ -18,6 +19,11 @@ class CategoryDropdownWidget extends StatelessWidget {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: decoration,
+      dropdownColor: AppTheme.cardColor,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppTheme.darkTextColor,
+          ),
+      borderRadius: BorderRadius.circular(12),
       items: CategoryHelper.getAllCategories()
           .map((category) => DropdownMenuItem<String>(
                 value: category,
