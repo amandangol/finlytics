@@ -10,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../models/user_model.dart';
 import 'auth_page.dart';
-import '../../../../models.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserModel userModel;

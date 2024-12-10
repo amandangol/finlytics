@@ -6,17 +6,17 @@ class OnboardingPageWidget extends StatelessWidget {
   final String description;
 
   const OnboardingPageWidget({
-    Key? key,
+    super.key,
     required this.image,
     required this.title,
     required this.description,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -33,20 +33,20 @@ class OnboardingPageWidget extends StatelessWidget {
             image,
             height: 250,
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Text(
             description,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 16,
             ),

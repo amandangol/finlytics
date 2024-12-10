@@ -6,7 +6,7 @@ import '../../auth/presentation/pages/auth_page.dart';
 import '../onboarding/presentation/onboarding_page.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -86,7 +86,6 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Replace Icon with Lottie animation (requires lottie package)
               Image.asset(
                 'assets/images/finlylogo.png',
                 width: 200,
@@ -101,7 +100,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
               ).animate(
                 effects: [
-                  SlideEffect(begin: const Offset(0, 0.5), end: Offset.zero),
+                  const SlideEffect(begin: Offset(0, 0.5), end: Offset.zero),
                   FadeEffect(duration: 1000.ms, delay: 500.ms),
                 ],
               ),

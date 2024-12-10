@@ -1,33 +1,33 @@
-import 'dart:async';
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_tracker/core/common/custom_appbar.dart';
+import 'package:expense_tracker/core/constants/app_colors.dart';
+import 'package:expense_tracker/features/gemini_chat_ai/services/chatprovider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
-import '../../../../models/account_model.dart';
-import '../../../../models/transaction_model.dart';
-import '../../../../models/user_model.dart';
+import 'package:provider/provider.dart';
+import '../../services/ai_service.dart';
+import '../../services/speech_service.dart';
+import '../widgets/message_input_field.dart';
+import '../widgets/message_list.dart';
+import '../widgets/predefined_queries_row.dart';
 
-class GeminiAiPage extends StatefulWidget {
-  const GeminiAiPage({super.key});
+class GeminiChatAiPage extends StatefulWidget {
+  const GeminiChatAiPage({super.key});
 
   @override
-  _GeminiAiPageState createState() => _GeminiAiPageState();
+  _GeminiChatAiPageState createState() => _GeminiChatAiPageState();
 }
 
-class _GeminiAiPageState extends State<GeminiAiPage> {
-  late GenerativeModel _geminiModel;
+class _GeminiChatAiPageState extends State<GeminiChatAiPage> {
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
-  final int _maxMessageLength = 250;
   final ScrollController _scrollController = ScrollController();
+  final int _maxMessageLength = 250;
+
+  final AiService _aiService = AiService();
+  final SpeechService _speechService = SpeechService();
+
   bool _isLoading = false;
   String? _warning;
-  final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
 
   // Predefined query templates
@@ -42,12 +42,8 @@ class _GeminiAiPageState extends State<GeminiAiPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize Gemini AI
-    // IMPORTANT: Replace 'YOUR_GEMINI_API_KEY' with your actual Gemini API key
-    _geminiModel = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: 'AIzaSyALcSdmiKasf9T6DxVT1x5C-CfRveNNBcs',
-    );
+    Provider.of<ChatState>(context, listen: false)
+        .checkAndClearMessagesForNewUser();
   }
 
   @override
@@ -57,8 +53,11 @@ class _GeminiAiPageState extends State<GeminiAiPage> {
     super.dispose();
   }
 
-  Future<void> sendMessage(String text,
+  Future<void> _sendMessage(String text,
       {bool isPredefinedQuery = false}) async {
+    // Get ChatState from context
+    final chatState = Provider.of<ChatState>(context, listen: false);
+
     if (text.isEmpty || text.length > _maxMessageLength) {
       setState(() {
         _warning = text.length > _maxMessageLength
@@ -71,39 +70,44 @@ class _GeminiAiPageState extends State<GeminiAiPage> {
     setState(() {
       _warning = null;
       _isLoading = true;
-      _messages.add({"message": text, "isUserMessage": true});
     });
+
+    // Add user message using ChatState
+    chatState.addMessage({"message": text, "isUserMessage": true});
 
     _controller.clear();
     _scrollToBottom();
 
     try {
-      // Get current user
-      String userId = await getCurrentUserId();
+      String? userId = await _getCurrentUserId();
 
-      // Prepare context-aware query
-      String enhancedQuery = await _prepareEnhancedQuery(text, userId);
-
-      // Send query to Gemini
-      final content = [Content.text(enhancedQuery)];
-      final response = await _geminiModel.generateContent(content);
-
-      setState(() {
-        _messages.add({
-          "message": response.text ?? "I couldn't generate a response.",
+      if (userId == null) {
+        chatState.addMessage({
+          "message": "Please log in to use this feature.",
           "isUserMessage": false
         });
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      String response = await _aiService.generateResponse(text, userId);
+
+      // Add AI response using ChatState
+      chatState.addMessage({"message": response, "isUserMessage": false});
+
+      setState(() {
         _isLoading = false;
       });
 
-      // Check for specific intents and perform actions
-      await _handleSpecificIntents(text, response.text ?? "");
+      await _aiService.handleSpecificIntents(text, response);
     } catch (e) {
+      chatState.addMessage({
+        "message": "An error occurred: ${e.toString()}",
+        "isUserMessage": false
+      });
       setState(() {
-        _messages.add({
-          "message": "Sorry, I encountered an error: $e",
-          "isUserMessage": false
-        });
         _isLoading = false;
       });
     }
@@ -111,133 +115,9 @@ class _GeminiAiPageState extends State<GeminiAiPage> {
     _scrollToBottom();
   }
 
-  Future<String> _prepareEnhancedQuery(
-      String originalQuery, String userId) async {
-    // Fetch recent transactions to provide context
-    List<Map<String, dynamic>> recentTransactions =
-        await fetchRecentTransactions(userId);
-
-    // Convert transactions to a readable format
-    String transactionsContext =
-        _formatTransactionsForGemini(recentTransactions);
-
-    // Enhance the original query with transaction context
-    return """
-    I'm using a personal finance app. Here's context about my recent transactions:
-    $transactionsContext
-
-    Query: $originalQuery
-
-    Please provide a helpful, detailed, and personalized response based on my recent financial activity.
-    """;
-  }
-
-  String _formatTransactionsForGemini(List<Map<String, dynamic>> transactions) {
-    if (transactions.isEmpty) return "No recent transactions found.";
-
-    return transactions.map((transaction) {
-      return "- ${transaction['type']} of ₹${transaction['amount']} in ${transaction['category']} on ${transaction['date']}";
-    }).join('\n');
-  }
-
-  Future<void> _handleSpecificIntents(String query, String response) async {
-    query = query.toLowerCase();
-    String userId = await getCurrentUserId();
-
-    if (query.contains("add transaction")) {
-      // Extract transaction details from Gemini's response
-      await _extractAndAddTransaction(response);
-    } else if (query.contains("savings tip") ||
-        query.contains("reduce expense")) {
-      // Log savings advice for future reference
-      await _logFinancialAdvice(userId, response);
-    }
-  }
-
-  Future<void> _extractAndAddTransaction(String response) async {
-    // Use Gemini to extract transaction details
-    // This is a simplified example and might need more robust parsing
-    RegExp amountRegex = RegExp(r'₹?(\d+(\.\d+)?)');
-    RegExp categoryRegex = RegExp(r'(Expense|Income)', caseSensitive: false);
-
-    double amount =
-        double.tryParse(amountRegex.firstMatch(response)?.group(1) ?? '0') ??
-            0.0;
-    String type = categoryRegex.firstMatch(response)?.group(1) ?? 'Expense';
-    String category = 'Other'; // Default category
-
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      final transaction = TransactionModel(
-        id: '',
-        userId: user!.uid,
-        amount: amount,
-        type: type,
-        category: category,
-        details: response,
-        account: 'Main',
-        havePhotos: false,
-      );
-
-      await FirebaseFirestore.instance
-          .collection('transactions')
-          .add(transaction.toDocument());
-
-      // Update account balance
-      await _updateAccountBalance('Main', type == 'Expense' ? -amount : amount);
-    } catch (e) {
-      print('Error adding transaction: $e');
-    }
-  }
-
-  Future<void> _logFinancialAdvice(String userId, String advice) async {
-    await FirebaseFirestore.instance.collection('financial_advice').add({
-      'userId': userId,
-      'advice': advice,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<String> getCurrentUserId() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    return user?.uid ?? '';
-  }
-
-  Future<List<Map<String, dynamic>>> fetchRecentTransactions(
-      String userId) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('transactions')
-        .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
-        .limit(10)
-        .get();
-
-    return querySnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
-  }
-
-  Future<void> _updateAccountBalance(String accountName, double amount) async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    final userRef =
-        FirebaseFirestore.instance.collection('users').doc(user?.uid);
-    final userDoc = await userRef.get();
-
-    if (userDoc.exists) {
-      UserModel userModel = UserModel.fromDocument(userDoc);
-      Account? accountToUpdate = userModel.accounts.firstWhere(
-        (account) => account.name == accountName,
-        orElse: () => Account(name: accountName, balance: 0),
-      );
-
-      accountToUpdate.balance += amount;
-
-      await userRef.update({
-        'accounts':
-            userModel.accounts.map((account) => account.toMap()).toList()
-      });
-    }
+  void _resetChat() {
+    final chatState = Provider.of<ChatState>(context, listen: false);
+    chatState.clearMessages();
   }
 
   void _scrollToBottom() {
@@ -250,282 +130,102 @@ class _GeminiAiPageState extends State<GeminiAiPage> {
     });
   }
 
+  Future<String?> _getCurrentUserId() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
+  }
+
+  void _handleMicPress() {
+    _speechService.checkPermissionAndListen(
+      context,
+      onResult: (recognizedWords) {
+        setState(() {
+          _controller.text = recognizedWords;
+        });
+      },
+      onListeningStateChanged: (isListening) {
+        setState(() {
+          _isListening = isListening;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(child: _buildMessageList()),
-          _buildPredefinedQueriesRow(),
-          _buildInputField(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPredefinedQueriesRow() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Row(
-        children: _predefinedQueries.map((query) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFA726),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-              ),
-              onPressed: () => sendMessage(query, isPredefinedQuery: true),
-              child: Text(query, style: GoogleFonts.roboto()),
+    return Consumer<ChatState>(builder: (context, chatState, child) {
+      return Scaffold(
+        appBar: CustomAppBar(
+          title: "FinlyticsAI",
+          actions: [
+            IconButton(
+              onPressed: _resetChat,
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Reset Chat',
             ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildMessageList() {
-    return _messages.isEmpty
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Welcome to Gemini Finance Assistant!",
-                  style:
-                      GoogleFonts.roboto(fontSize: 18.0, color: Colors.black54),
-                ),
-                const SizedBox(height: 10.0),
-                Text(
-                  "Try asking about your finances",
-                  style:
-                      GoogleFonts.roboto(fontSize: 16.0, color: Colors.black45),
-                ),
-                const SizedBox(height: 5.0),
-                Text(
-                  "Examples:",
-                  style:
-                      GoogleFonts.roboto(fontSize: 16.0, color: Colors.black45),
-                ),
-                Text(
-                  "- Analyze my recent expenses",
-                  style:
-                      GoogleFonts.roboto(fontSize: 14.0, color: Colors.black45),
-                ),
-                Text(
-                  "- Provide savings tips",
-                  style:
-                      GoogleFonts.roboto(fontSize: 14.0, color: Colors.black45),
-                ),
-              ],
-            ),
-          )
-        : ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(8.0),
-            itemCount: _messages.length + (_isLoading ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == _messages.length && _isLoading) {
-                return _buildLoadingIndicator();
-              }
-              var message = _messages[index];
-              return _buildMessageItem(message["message"].toString(),
-                  message["isUserMessage"] as bool);
-            },
-          );
-  }
-
-  Widget _buildMessageItem(String message, bool isUserMessage) {
-    return Align(
-      alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: isUserMessage
-            ? const EdgeInsets.fromLTRB(35, 7, 2, 7)
-            : const EdgeInsets.fromLTRB(2, 7, 35, 7),
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-        decoration: BoxDecoration(
-          color:
-              isUserMessage ? const Color(0xFFFFA726) : const Color(0xFFE0E0E0),
-          borderRadius: isUserMessage
-              ? const BorderRadius.only(
-                  topLeft: Radius.circular(16.0),
-                  bottomLeft: Radius.circular(16.0),
-                  bottomRight: Radius.circular(16.0),
-                )
-              : const BorderRadius.only(
-                  topRight: Radius.circular(16.0),
-                  bottomLeft: Radius.circular(16.0),
-                  bottomRight: Radius.circular(16.0),
-                ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10.0,
-              offset: const Offset(0, 4),
+            IconButton(
+              onPressed: () {
+                _showAppInfoDialog();
+              },
+              icon: const Icon(Icons.info_outline),
             ),
           ],
         ),
-        child: Text(
-          message,
-          style: GoogleFonts.roboto(
-            fontSize: 16.0,
-            color: isUserMessage ? Colors.white : Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Speech-to-text methods remain the same as in the previous implementation
-  Future<void> _checkPermissionAndListen() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      var status = await Permission.microphone.request();
-      if (status.isGranted) {
-        _startListening();
-      } else {
-        setState(() {
-          _warning = 'Microphone permission not granted';
-        });
-      }
-    }
-  }
-
-  void _startListening() async {
-    if (!_isListening) {
-      bool available = await _speech.initialize();
-      if (available) {
-        setState(() => _isListening = true);
-        _speech.listen(
-          onResult: (val) {
-            setState(() {
-              _controller.text = val.recognizedWords;
-              if (val.finalResult) {
-                _isListening = false;
-              }
-            });
-          },
-        );
-      } else {
-        setState(() => _isListening = false);
-      }
-    }
-  }
-
-  void _stopListening() {
-    _speech.stop();
-    setState(() => _isListening = false);
-  }
-
-  Widget _buildInputField() {
-    final viewInsets = MediaQuery.of(context).viewInsets;
-    final isKeyboardOpen = viewInsets.bottom > 0;
-
-    // Adjust padding based on keyboard visibility
-    final transform = isKeyboardOpen
-        ? Matrix4.translationValues(0.0, 60.0, 0.0)
-        : Matrix4.translationValues(0.0, 0.0, 0.0);
-
-    return Container(
-      transform: transform,
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
-      decoration: BoxDecoration(
-        color: const Color(0xF0D7D5D5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10.0,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (_warning != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                _warning!,
-                style: GoogleFonts.roboto(color: Colors.red, fontSize: 14.0),
-              ),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.fromARGB(255, 230, 236, 241),
+                Color.fromARGB(255, 220, 239, 225),
+              ],
             ),
-          Row(
+          ),
+          child: Column(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _controller,
-                  maxLength: _maxMessageLength,
-                  cursorColor: const Color(0xFFEF6C06),
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 20.0),
-                    hintText:
-                        _isListening ? "Listening..." : "Type your message...",
-                    hintStyle: GoogleFonts.roboto(color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30.0),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFFF6F6F6),
-                    suffixIcon: GestureDetector(
-                      onLongPressStart: (_) => _checkPermissionAndListen(),
-                      onLongPressEnd: (_) => _stopListening(),
-                      child: Container(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Icon(
-                          _isListening ? Icons.mic_off : Icons.mic,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
+                child: MessageList(
+                  messages: chatState.messages,
+                  scrollController: _scrollController,
+                  isLoading: _isLoading,
                 ),
               ),
-              const SizedBox(width: 8.0),
-              Container(
-                margin: const EdgeInsets.fromLTRB(2, 2, 4, 22),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFA726), Color(0xFFF57C00)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 6.0,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  onPressed: () => sendMessage(_controller.text),
-                ),
+              PredefinedQueriesRow(
+                predefinedQueries: _predefinedQueries,
+                onQuerySelected: (query) =>
+                    _sendMessage(query, isPredefinedQuery: true),
+              ),
+              MessageInputField(
+                controller: _controller,
+                onSend: () => _sendMessage(_controller.text),
+                onMicPress: _handleMicPress,
+                isListening: _isListening,
+                warning: _warning,
+                maxMessageLength: _maxMessageLength,
               ),
             ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
-  Widget _buildLoadingIndicator() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SpinKitThreeBounce(
-            color: Color(0xFFFFA726),
-            size: 20.0,
+  void _showAppInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: Text('FinlyticsAI Assistant', style: GoogleFonts.roboto()),
+        content: Text(
+          'Your personal AI-powered financial advisor. '
+          'Get insights, analyze expenses, and receive personalized financial guidance.',
+          style: GoogleFonts.roboto(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Close', style: GoogleFonts.roboto()),
           ),
         ],
       ),

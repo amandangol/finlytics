@@ -5,7 +5,7 @@ import '../../../auth/presentation/pages/signin_page.dart.dart';
 import 'widgets/onboarding_page_widget.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   _OnboardingScreenState createState() => _OnboardingScreenState();
@@ -66,7 +66,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               children: List.generate(
                 onboardingPages.length,
                 (index) => Container(
-                  margin: EdgeInsets.symmetric(horizontal: 5),
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
@@ -89,11 +89,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 TextButton(
                   onPressed: _currentPage > 0
                       ? () => _pageController.previousPage(
-                            duration: Duration(milliseconds: 300),
+                            duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
                           )
                       : null,
-                  child: Text('Previous'),
+                  child: const Text('Previous'),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -108,7 +108,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       );
                     } else {
                       _pageController.nextPage(
-                        duration: Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 300),
                         curve: Curves.easeInOut,
                       );
                     }

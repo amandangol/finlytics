@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/provider/currency_provider.dart';
 import '../../../../../core/utils/category_helper.dart';
 import '../../../../../models/photo_model.dart';
 import '../../../../../models/transaction_model.dart';
@@ -330,13 +332,22 @@ class TransactionDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(title: "Transaction Details"),
-      backgroundColor: AppTheme.backgroundColor,
-      body: SingleChildScrollView(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 230, 236, 241),
+              Color.fromARGB(255, 220, 239, 225),
+            ],
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             children: [
-              _buildTransactionSummaryCard(),
+              _buildTransactionSummaryCard(context),
               const SizedBox(height: 16),
               _buildDetailSection(),
               const SizedBox(height: 16),
@@ -350,7 +361,9 @@ class TransactionDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionSummaryCard() {
+  Widget _buildTransactionSummaryCard(context) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -407,7 +420,7 @@ class TransactionDetailsPage extends StatelessWidget {
               ),
             ),
             Text(
-              '₹${transaction.amount.toStringAsFixed(2)}',
+              currencyProvider.formatCurrency(transaction.amount),
               style: AppTheme.textTheme.displayMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

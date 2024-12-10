@@ -24,7 +24,7 @@ class SleekNavigationBar extends StatelessWidget {
         TabItem(icon: Icons.home, title: 'Home'),
         TabItem(icon: Icons.bar_chart, title: 'Charts'),
         TabItem(icon: Icons.add, title: 'Add'),
-        TabItem(icon: Icons.all_inclusive_outlined, title: 'AI'),
+        TabItem(icon: Icons.all_out_rounded, title: 'FinlyticsAI'),
         TabItem(icon: Icons.person, title: 'Profile'),
       ],
       onTap: onItemTapped,

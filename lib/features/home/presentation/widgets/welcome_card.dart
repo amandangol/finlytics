@@ -11,13 +11,13 @@ class WelcomeCard extends StatelessWidget {
   final VoidCallback? onToggleDarkMode;
 
   const WelcomeCard({
-    Key? key,
+    super.key,
     required this.userModel,
     required this.totalIncome,
     required this.totalExpense,
     this.isDarkMode = false,
     this.onToggleDarkMode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,31 +106,6 @@ class WelcomeCard extends StatelessWidget {
           .animate()
           .fadeIn(duration: 600.ms)
           .slideY(begin: 0.1, end: 0, duration: 600.ms),
-    );
-  }
-
-  Widget _buildFinancialStat(String label, double amount, bool isIncome) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isIncome ? AppTheme.successColor : AppTheme.errorColor,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '₹${amount.toStringAsFixed(2)}',
-          style: TextStyle(
-            color: isIncome ? AppTheme.successColor : AppTheme.errorColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
     );
   }
 

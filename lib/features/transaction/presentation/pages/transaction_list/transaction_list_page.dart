@@ -10,7 +10,9 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/provider/currency_provider.dart';
 import '../../../../../core/utils/category_helper.dart';
 import '../../../../../models/transaction_model.dart';
 import '../transaction_details/transaction_details_page.dart';
@@ -648,17 +650,29 @@ class _TransactionListPageState extends State<TransactionListPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildPeriodDropdown(),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _buildTransactionList(),
-            ),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 230, 236, 241),
+              Color.fromARGB(255, 220, 239, 225),
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildPeriodDropdown(),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _buildTransactionList(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -668,7 +682,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.dividerColor, width: 1.5),
+        border: Border.all(color: AppTheme.primaryDarkColor, width: 1.5),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -676,6 +690,10 @@ class _TransactionListPageState extends State<TransactionListPage> {
           isExpanded: true,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           dropdownColor: AppTheme.surfaceColor,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.darkTextColor,
+              ),
+          borderRadius: BorderRadius.circular(12),
           icon: const Icon(Icons.arrow_drop_down, color: AppTheme.primaryColor),
           items: [
             'Today',
@@ -730,8 +748,8 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
     return ListView.separated(
       itemCount: _filteredTransactions.length,
-      separatorBuilder: (context, index) => Divider(
-        color: AppTheme.dividerColor.withOpacity(0.3),
+      separatorBuilder: (context, index) => const Divider(
+        color: AppTheme.primaryDarkColor,
         height: 1,
       ),
       itemBuilder: (context, index) {
@@ -742,6 +760,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   }
 
   Widget _buildTransactionListItem(TransactionModel transaction) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
       leading: CircleAvatar(
@@ -762,7 +781,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
         style: AppTheme.textTheme.bodySmall,
       ),
       trailing: Text(
-        '₹${transaction.amount.toStringAsFixed(2)}',
+        currencyProvider.formatCurrency(transaction.amount),
         style: AppTheme.textTheme.bodyLarge?.copyWith(
             color: transaction.type == 'Income'
                 ? AppTheme.successColor

@@ -94,14 +94,6 @@ class _HomePageState extends State<HomePage> {
 
       // Refresh transactions for the current period
       await _fetchTransactionsForPeriod(_selectedPeriod);
-
-      // Optional: Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Data refreshed successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } catch (e) {
       // Handle any errors during refresh
       ScaffoldMessenger.of(context).showSnackBar(
@@ -274,19 +266,17 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        body: SafeArea(
-          child: userModel == null
-              ? const Center(
-                  child: SpinKitThreeBounce(
-                    color: AppTheme.primaryDarkColor,
-                    size: 20.0,
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _refreshData,
-                  child: _buildBody(),
+        body: userModel == null
+            ? const Center(
+                child: SpinKitThreeBounce(
+                  color: AppTheme.primaryDarkColor,
+                  size: 20.0,
                 ),
-        ),
+              )
+            : RefreshIndicator(
+                onRefresh: _refreshData,
+                child: _buildBody(),
+              ),
         bottomNavigationBar: SleekNavigationBar(
           selectedIndex: _selectedIndex,
           onItemTapped: _onItemTapped,
@@ -304,7 +294,7 @@ class _HomePageState extends State<HomePage> {
         _selectedIndex == 2
             ? AddTransactionPage(userModel: userModel!)
             : Container(),
-        _selectedIndex == 3 ? GeminiAiPage() : Container(),
+        _selectedIndex == 3 ? const GeminiChatAiPage() : Container(),
         ProfilePage(
           userModel: userModel!,
         )

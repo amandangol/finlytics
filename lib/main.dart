@@ -1,4 +1,4 @@
-import 'package:expense_tracker/features/intro/onboarding/presentation/onboarding_page.dart';
+import 'package:expense_tracker/features/gemini_chat_ai/services/chatprovider.dart';
 import 'package:expense_tracker/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'core/constants/app_colors.dart';
+import 'core/provider/currency_provider.dart';
 import 'core/provider/theme_provider.dart';
 import 'features/auth/presentation/pages/forgot_password_page.dart';
 import 'features/auth/presentation/pages/signin_page.dart.dart';
@@ -27,16 +28,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: Consumer<ThemeProvider>(builder: (context, themeProvider, child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ChatState()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => CurrencyProvider()),
+      ],
+      child: Consumer<ThemeProvider>(builder: (context, theme, child) {
         return MaterialApp(
           title: 'Finlytics', // Updated app name
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: themeProvider.themeMode,
-          home: const SplashScreen(), // Change home to SplashScreen
+          themeMode: theme.themeMode,
+          home: const SplashScreen(),
           routes: {
             '/login': (context) => const SigninPage(),
             '/forgot-password': (context) => const ForgotPasswordPage(),

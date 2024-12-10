@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../../../core/constants/app_colors.dart';
+import '../../../../../../core/provider/currency_provider.dart';
 import '../../../../../../models/account_model.dart';
 
 class AccountDropdownWidget extends StatelessWidget {
@@ -19,6 +21,8 @@ class AccountDropdownWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
+
     return DropdownButtonFormField<String>(
       value: value,
       decoration: decoration,
@@ -33,7 +37,8 @@ class AccountDropdownWidget extends StatelessWidget {
           value: account.name,
           child: Row(
             children: [
-              Text('${account.name} - ₹${account.balance.toStringAsFixed(2)}'),
+              Text(
+                  '${account.name} -   ${currencyProvider.formatCurrency(account.balance)}'),
             ],
           ),
         );

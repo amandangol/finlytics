@@ -21,7 +21,7 @@ InputDecoration getCommonInputDecoration(
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(
+      borderSide: const BorderSide(
         color: AppTheme.primaryColor,
         width: 2,
       ),

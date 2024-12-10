@@ -1,9 +1,11 @@
+import 'package:expense_tracker/screens/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/provider/currency_provider.dart';
 import '../../../../core/provider/theme_provider.dart';
 import '../../../../core/utils/category_helper.dart';
 import '../../../../models/account_model.dart';
@@ -63,33 +65,59 @@ class _HomeContentState extends State<HomeContent>
         isDarkMode0 ? AppTheme.lightTextColor : AppTheme.darkTextColor;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
+      // backgroundColor: backgroundColor,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 230, 236, 241), // Soft light blue
+              Color.fromARGB(255, 220, 239, 225), // Soft light green
+            ],
+          ),
+        ),
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 200,
-              floating: false,
+              expandedHeight: 220,
+              floating: true,
+              actions: [
+                IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SettingsPage()));
+                    },
+                    icon: const Icon(
+                      Icons.settings,
+                      color: AppTheme.accentColor,
+                    ))
+              ],
               elevation: 0,
               pinned: true,
               backgroundColor: AppTheme.surfaceColor,
               flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                titlePadding: const EdgeInsets.only(bottom: 16),
+                title: const Text(
+                  "Finlytics",
+                  style: TextStyle(
+                    color: AppTheme.secondaryDarkColor,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 2,
+                    fontSize: 20,
+                  ),
+                ),
                 background: Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
                       image: NetworkImage(
-                          'https://media.istockphoto.com/id/1424757003/photo/budget-and-financial-planning-concept-including-a-management-or-executive-cfo-estimating-the.jpg?s=612x612&w=0&k=20&c=-qReHcxce_QnKsWlvV1x7jOndAAjPpiuFR7fZ7AUfQ0='), // Replace with your image path
+                          'https://bs-uploads.toptal.io/blackfish-uploads/components/blog_post_page/6428813/cover_image/optimized/Profitability-Optimization_BLOG-23df67f3151e1935dbe15b589f6c39d5.png'),
+                      alignment: Alignment.centerRight,
                       fit: BoxFit.cover,
                     ),
-                  ),
-                ),
-                title: const Text(
-                  "Finlytics",
-                  style: TextStyle(
-                    color: AppTheme.primaryDarkColor,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 2,
-                    fontSize: 20,
                   ),
                 ),
               ),
@@ -102,8 +130,6 @@ class _HomeContentState extends State<HomeContent>
                     userModel: widget.userModel,
                     totalIncome: widget.totalIncome,
                     totalExpense: widget.totalExpense,
-                    // isDarkMode: isDarkMode,
-                    // onToggleDarkMode: onToggleDarkMode,
                   ),
                   const SizedBox(height: 20),
                   _buildBalanceCard(cardColor, textColor),
@@ -119,6 +145,8 @@ class _HomeContentState extends State<HomeContent>
   }
 
   Widget _buildBalanceCard(Color cardColor, Color textColor) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
+
     return GestureDetector(
       onTap: widget.onShowAccountsDialog,
       child: Container(
@@ -158,26 +186,16 @@ class _HomeContentState extends State<HomeContent>
               ],
             ),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.savings_outlined,
-                  size: 26,
-                  color: AppTheme.secondaryColor,
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-                Text(
-                  '${widget.selectedAccount != null ? widget.selectedAccount!.balance.toString() : widget.userModel.totalBalance}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
+            Text(
+              currencyProvider.formatCurrency(widget.selectedAccount != null
+                  ? widget.selectedAccount!.balance
+                  : widget.userModel.totalBalance),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
             ),
             const SizedBox(height: 10),
             const Row(
@@ -267,8 +285,6 @@ class _HomeContentState extends State<HomeContent>
   }
 
   Widget _buildPeriodDropdown(Color textColor) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -306,6 +322,8 @@ class _HomeContentState extends State<HomeContent>
   }
 
   Widget _buildIncomeExpenseBox(String title, double amount, bool isIncome) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -344,7 +362,7 @@ class _HomeContentState extends State<HomeContent>
             ),
             const SizedBox(height: 10),
             Text(
-              '₹${amount.toStringAsFixed(2)}',
+              currencyProvider.formatCurrency(amount),
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -494,6 +512,8 @@ class _HomeContentState extends State<HomeContent>
   Widget _buildTransactionList(Color textColor) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -583,7 +603,7 @@ class _HomeContentState extends State<HomeContent>
                   ),
                 ),
                 trailing: Text(
-                  '₹${transaction.amount.toStringAsFixed(2)}',
+                  currencyProvider.formatCurrency(transaction.amount),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: transaction.type == "Expense"

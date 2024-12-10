@@ -146,18 +146,30 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      // backgroundColor: const Color.fromARGB(255, 184, 220, 245),
       appBar: const CustomAppBar(title: "Financial Insights"),
-      body: Column(
-        children: [
-          _buildFilterSection(),
-          Expanded(
-            child: FadeTransition(
-              opacity: _animationController,
-              child: _buildChartsContent(),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.fromARGB(255, 230, 236, 241),
+              Color.fromARGB(255, 220, 239, 225), // Soft light green
+            ],
           ),
-        ],
+        ),
+        child: Column(
+          children: [
+            _buildFilterSection(),
+            Expanded(
+              child: FadeTransition(
+                opacity: _animationController,
+                child: _buildChartsContent(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

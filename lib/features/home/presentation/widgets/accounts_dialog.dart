@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/provider/currency_provider.dart';
 import '../../../../models/account_model.dart';
 
 class AccountsDialog extends StatefulWidget {
@@ -146,6 +148,8 @@ class _AccountsDialogState extends State<AccountsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
+
     return AlertDialog(
       backgroundColor: AppTheme.cardColor,
       title: Text(
@@ -170,7 +174,7 @@ class _AccountsDialogState extends State<AccountsDialog> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '₹${account.balance.toString()}',
+                      currencyProvider.formatCurrency(account.balance),
                       style: AppTheme.textTheme.bodyMedium,
                     ),
                     IconButton(

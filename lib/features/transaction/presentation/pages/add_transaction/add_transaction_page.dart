@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/error_utils.dart';
-
 import '../../../../../models/photo_model.dart';
 import '../../../../../models/transaction_model.dart';
 import '../../../../../models/user_model.dart';
@@ -294,8 +293,6 @@ class _AddTransactionPageState extends State<AddTransactionPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: const CustomAppBar(
         title: "Add Transaction",
@@ -320,107 +317,121 @@ class _AddTransactionPageState extends State<AddTransactionPage>
               opacity: _fadeAnimation,
               child: SlideTransition(
                 position: _slideAnimation,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            AmountInputWidget(
-                              controller: _amountController,
-                              decoration: getCommonInputDecoration(context,
-                                  labelText: 'Amount', prefixIcon: Icons.money),
-                            ),
-                            const SizedBox(height: 16),
-                            DetailsInputWidget(
-                              controller: _detailsController,
-                              decoration: getCommonInputDecoration(context,
-                                  labelText: 'Details',
-                                  prefixIcon: Icons.notes),
-                            ),
-                            const SizedBox(height: 16),
-                            DateInputWidget(
-                              controller: _dateController,
-                              onTap: () => _pickDate(_selectedDate),
-                              decoration: getCommonInputDecoration(context,
-                                  labelText: 'Date',
-                                  prefixIcon: Icons.calendar_today),
-                            ),
-                            const SizedBox(height: 16),
-                            TypeDropdownWidget(
-                              value: _selectedType,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _selectedType = newValue!;
-                                });
-                              },
-                              decoration: getCommonInputDecoration(context,
-                                  labelText: 'Type',
-                                  prefixIcon: Icons.swap_vert_sharp),
-                            ),
-                            const SizedBox(height: 16),
-                            CategoryDropdownWidget(
-                              value: _selectedCategory,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _selectedCategory = newValue!;
-                                });
-                              },
-                              decoration: getCommonInputDecoration(context,
-                                  labelText: 'Category',
-                                  prefixIcon: Icons.category),
-                            ),
-                            const SizedBox(height: 16),
-                            AccountDropdownWidget(
-                              accounts: widget.userModel.accounts,
-                              value: _selectedAccount,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _selectedAccount = newValue!;
-                                });
-                              },
-                              decoration: getCommonInputDecoration(context,
-                                  labelText: 'Account',
-                                  prefixIcon: Icons.account_balance_wallet),
-                            ),
-                            const SizedBox(height: 16),
-                            PhotoSectionWidget(
-                              selectedPhotos: _selectedPhotos,
-                              onCameraPressed: () =>
-                                  _pickImage(ImageSource.camera),
-                              onGalleryPressed: () =>
-                                  _pickImage(ImageSource.gallery),
-                              onPhotoRemoved: (index) {
-                                setState(() {
-                                  _selectedPhotos.removeAt(index);
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            AnimatedBuilder(
-                              animation: _animationController,
-                              builder: (context, child) {
-                                return Transform.scale(
-                                  scale: _fadeAnimation.value,
-                                  child: child,
-                                );
-                              },
-                              child: SubmitButton(
-                                onPressed: _submitTransaction,
-                                child: Text(
-                                  'Submit Transaction',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(
-                                        color: AppTheme.lightTextColor,
-                                      ),
-                                ),
+                child: Container(
+                  height: MediaQuery.of(context).size.height,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color.fromARGB(255, 230, 236, 241),
+                        Color.fromARGB(255, 220, 239, 225),
+                      ],
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AmountInputWidget(
+                                controller: _amountController,
+                                decoration: getCommonInputDecoration(context,
+                                    labelText: 'Amount',
+                                    prefixIcon: Icons.money),
                               ),
-                            )
-                          ]),
+                              const SizedBox(height: 16),
+                              DetailsInputWidget(
+                                controller: _detailsController,
+                                decoration: getCommonInputDecoration(context,
+                                    labelText: 'Details',
+                                    prefixIcon: Icons.notes),
+                              ),
+                              const SizedBox(height: 16),
+                              DateInputWidget(
+                                controller: _dateController,
+                                onTap: () => _pickDate(_selectedDate),
+                                decoration: getCommonInputDecoration(context,
+                                    labelText: 'Date',
+                                    prefixIcon: Icons.calendar_today),
+                              ),
+                              const SizedBox(height: 16),
+                              TypeDropdownWidget(
+                                value: _selectedType,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _selectedType = newValue!;
+                                  });
+                                },
+                                decoration: getCommonInputDecoration(context,
+                                    labelText: 'Type',
+                                    prefixIcon: Icons.swap_vert_sharp),
+                              ),
+                              const SizedBox(height: 16),
+                              CategoryDropdownWidget(
+                                value: _selectedCategory,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _selectedCategory = newValue!;
+                                  });
+                                },
+                                decoration: getCommonInputDecoration(context,
+                                    labelText: 'Category',
+                                    prefixIcon: Icons.category),
+                              ),
+                              const SizedBox(height: 16),
+                              AccountDropdownWidget(
+                                accounts: widget.userModel.accounts,
+                                value: _selectedAccount,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _selectedAccount = newValue!;
+                                  });
+                                },
+                                decoration: getCommonInputDecoration(context,
+                                    labelText: 'Account',
+                                    prefixIcon: Icons.account_balance_wallet),
+                              ),
+                              const SizedBox(height: 16),
+                              PhotoSectionWidget(
+                                selectedPhotos: _selectedPhotos,
+                                onCameraPressed: () =>
+                                    _pickImage(ImageSource.camera),
+                                onGalleryPressed: () =>
+                                    _pickImage(ImageSource.gallery),
+                                onPhotoRemoved: (index) {
+                                  setState(() {
+                                    _selectedPhotos.removeAt(index);
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              AnimatedBuilder(
+                                animation: _animationController,
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: _fadeAnimation.value,
+                                    child: child,
+                                  );
+                                },
+                                child: SubmitButton(
+                                  onPressed: _submitTransaction,
+                                  child: Text(
+                                    'Submit Transaction',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                          color: AppTheme.lightTextColor,
+                                        ),
+                                  ),
+                                ),
+                              )
+                            ]),
+                      ),
                     ),
                   ),
                 ),
