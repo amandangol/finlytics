@@ -22,7 +22,6 @@ class WelcomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      // Replaced CustomScrollView with SingleChildScrollView
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
@@ -48,29 +47,33 @@ class WelcomeCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(),
-                        style: TextStyle(
-                          color: isDarkMode ? Colors.white70 : Colors.black87,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _getGreeting(),
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white70 : Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        userModel.username.isNotEmpty
-                            ? '${userModel.username}!'
-                            : 'User!',
-                        style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(height: 8),
+                        Text(
+                          userModel.username.isNotEmpty
+                              ? '${userModel.username}!'
+                              : 'User!',
+                          maxLines: 1,
+                          style: TextStyle(
+                            overflow: TextOverflow.ellipsis,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   CircleAvatar(
                     radius: 30,

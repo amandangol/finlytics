@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../auth/presentation/pages/signin_page.dart.dart';
@@ -15,24 +16,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, String>> onboardingPages = [
+  final List<Map<String, dynamic>> onboardingPages = [
     {
-      'image': 'assets/track_expenses.png',
-      'title': 'Track Your Expenses',
+      'icon': LucideIcons.pieChart,
+      'title': 'Comprehensive Financial Overview',
       'description':
-          'Effortlessly monitor and categorize all your financial transactions in one place.'
+          'Get a holistic view of your financial health with detailed tracking of expenses and incomes across all your accounts.',
     },
     {
-      'image': 'assets/smart_insights.png',
-      'title': 'Smart Financial Insights',
+      'icon': LucideIcons.wallet,
+      'title': 'Effortless Expense Tracking',
       'description':
-          'Get personalized recommendations and understand your spending patterns.'
+          'Quickly add and categorize your expenses and income with just a few taps. Stay on top of your financial transactions in real-time.',
     },
     {
-      'image': 'assets/secure_data.png',
-      'title': 'Secure Your Data',
+      'icon': LucideIcons.barChart3,
+      'title': 'Insightful Data Visualization',
       'description':
-          'Your financial information is encrypted and protected with state-of-the-art security.'
+          'Transform your financial data into easy-to-understand charts and graphs. Identify spending patterns and make informed financial decisions.',
+    },
+    {
+      'icon': LucideIcons.dollarSign,
+      'title': 'Multi-Currency Support',
+      'description':
+          'View and manage your finances in your preferred currency. Seamless currency conversion and formatting for global financial tracking.',
+    },
+    {
+      'icon': LucideIcons.bot,
+      'title': 'Finlytics AI Assistant',
+      'description':
+          'Leverage AI-powered insights powered by Gemini. Get personalized financial advice, budget recommendations, and smart money management tips.',
     }
   ];
 
@@ -51,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
             itemBuilder: (context, index) {
               return OnboardingPageWidget(
-                image: onboardingPages[index]['image']!,
+                icon: onboardingPages[index]['icon'],
                 title: onboardingPages[index]['title']!,
                 description: onboardingPages[index]['description']!,
               );

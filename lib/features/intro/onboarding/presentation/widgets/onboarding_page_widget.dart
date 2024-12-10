@@ -1,15 +1,18 @@
+import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingPageWidget extends StatelessWidget {
-  final String image;
+  final String? image;
   final String title;
   final String description;
+  final IconData? icon;
 
   const OnboardingPageWidget({
     super.key,
-    required this.image,
+    this.image,
     required this.title,
     required this.description,
+    required this.icon,
   });
 
   @override
@@ -29,10 +32,7 @@ class OnboardingPageWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            image,
-            height: 250,
-          ),
+          Icon(icon, size: 120, color: AppTheme.surfaceColor),
           const SizedBox(height: 40),
           Text(
             title,

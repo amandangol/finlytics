@@ -8,10 +8,10 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../models/account_model.dart';
 import '../../../../models/transaction_model.dart';
 import '../../../../models/user_model.dart';
-import '../../../auth/presentation/pages/profile_page.dart';
+import '../../../profile/screens/profile_page.dart';
 import '../../../transaction/presentation/pages/transaction_list/transaction_list_page.dart';
 import '../../../transaction/data/transaction_service.dart';
-import '../../data/usecases/user_service.dart';
+import '../../../auth/services/user_service.dart';
 import 'home_content.dart';
 import '../widgets/accounts_dialog.dart';
 import '../widgets/username_input_dialog.dart';
@@ -296,7 +296,7 @@ class _HomePageState extends State<HomePage> {
             : Container(),
         _selectedIndex == 3 ? const GeminiChatAiPage() : Container(),
         ProfilePage(
-          userModel: userModel!,
+          user: userModel!,
         )
       ],
     );

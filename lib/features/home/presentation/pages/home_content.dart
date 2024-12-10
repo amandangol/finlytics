@@ -1,4 +1,3 @@
-import 'package:expense_tracker/screens/setting_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -82,19 +81,6 @@ class _HomeContentState extends State<HomeContent>
             SliverAppBar(
               expandedHeight: 220,
               floating: true,
-              actions: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SettingsPage()));
-                    },
-                    icon: const Icon(
-                      Icons.settings,
-                      color: AppTheme.accentColor,
-                    ))
-              ],
               elevation: 0,
               pinned: true,
               backgroundColor: AppTheme.surfaceColor,

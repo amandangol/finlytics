@@ -6,24 +6,42 @@ class UserModel {
   String username;
   String email;
   List<Account> accounts;
+  String? profileImageUrl;
 
   UserModel({
     required this.id,
     this.username = '',
     this.email = '',
+    this.profileImageUrl,
     List<Account>? accounts,
   }) : accounts = accounts ?? [Account(name: 'main', balance: 0.0)];
 
   factory UserModel.fromDocument(DocumentSnapshot doc) {
-    var accountList = (doc['accounts'] as List<dynamic>?)
-            ?.map((account) => Account.fromMap(account))
-            .toList() ??
-        [Account(name: 'main', balance: 0.0)];
+    // Safely cast to map and handle potential null values
+    final data = doc.data() as Map<String, dynamic>?;
+
+    if (data == null) {
+      throw ArgumentError('Document data is null');
+    }
+
+    // Handle accounts parsing with null safety
+    List<Account> accountList;
+    try {
+      accountList = data['accounts'] != null
+          ? (data['accounts'] as List)
+              .map((account) => Account.fromMap(account))
+              .toList()
+          : [Account(name: 'main', balance: 0.0)];
+    } catch (e) {
+      print('Error parsing accounts: $e');
+      accountList = [Account(name: 'main', balance: 0.0)];
+    }
 
     return UserModel(
       id: doc.id,
-      username: doc['username'] ?? '',
-      email: doc['email'],
+      username: data['username'] ?? '',
+      email: data['email'] ?? '',
+      profileImageUrl: data['profileImageUrl'],
       accounts: accountList,
     );
   }
@@ -32,11 +50,28 @@ class UserModel {
     return {
       'username': username,
       'email': email,
+      'profileImageUrl': profileImageUrl,
       'accounts': accounts.map((account) => account.toMap()).toList(),
     };
   }
 
   double get totalBalance {
     return accounts.fold(0.0, (sum, account) => sum + account.balance);
+  }
+
+  // Method to update profile image URL
+  UserModel copyWith({
+    String? username,
+    String? email,
+    String? profileImageUrl,
+    List<Account>? accounts,
+  }) {
+    return UserModel(
+      id: id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      accounts: accounts ?? this.accounts,
+    );
   }
 }

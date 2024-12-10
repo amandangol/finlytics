@@ -7,6 +7,7 @@ class ErrorUtils {
     bool isError = true,
     Duration duration = const Duration(seconds: 3),
     VoidCallback? onVisible,
+    Color? color,
   }) {
     // Remove any existing SnackBars
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
