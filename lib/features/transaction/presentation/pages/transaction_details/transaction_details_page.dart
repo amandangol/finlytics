@@ -1,6 +1,8 @@
+import 'package:expense_tracker/core/common/custom_appbar.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/category_helper.dart';
 import '../../../../../models.dart';
@@ -31,9 +33,10 @@ class TransactionDetailsPage extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
           title: const Text('Delete Transaction',
               style: TextStyle(
-                  color: Color(0xFFEF6C06), fontWeight: FontWeight.bold)),
+                  color: AppTheme.accentColor, fontWeight: FontWeight.bold)),
           content: const Text(
               'Deleting this transaction can cause inconsistency to the respective account, are you sure you want to delete?',
               style: TextStyle(fontSize: 16)),
@@ -46,7 +49,7 @@ class TransactionDetailsPage extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Delete',
-                  style: TextStyle(color: Color(0xFFEF6C06))),
+                  style: TextStyle(color: AppTheme.errorColor)),
             ),
           ],
         );
@@ -132,12 +135,13 @@ class TransactionDetailsPage extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              backgroundColor: AppTheme.cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               title: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.edit,
                     color: AppTheme.primaryColor,
                     size: 30,
@@ -206,7 +210,7 @@ class TransactionDetailsPage extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        suffixIcon: Icon(
+                        suffixIcon: const Icon(
                           Icons.calendar_today,
                           color: AppTheme.primaryColor,
                         ),
@@ -221,7 +225,7 @@ class TransactionDetailsPage extends StatelessWidget {
                           builder: (context, child) {
                             return Theme(
                               data: ThemeData.light().copyWith(
-                                colorScheme: ColorScheme.light(
+                                colorScheme: const ColorScheme.light(
                                   primary: AppTheme.primaryColor,
                                   onPrimary: Colors.white,
                                   surface: Colors.white,
@@ -245,7 +249,7 @@ class TransactionDetailsPage extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(
+                  child: const Text(
                     'Cancel',
                     style: TextStyle(color: AppTheme.mutedTextColor),
                   ),
@@ -306,28 +310,18 @@ class TransactionDetailsPage extends StatelessWidget {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Transaction Details',
-          style: AppTheme.textTheme.displayMedium
-              ?.copyWith(color: AppTheme.lightTextColor),
-        ),
-        backgroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        centerTitle: true,
-      ),
+      appBar: const CustomAppBar(title: "Transaction Details"),
+      backgroundColor: AppTheme.backgroundColor,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTransactionHeader(context),
+              _buildTransactionSummaryCard(),
               const SizedBox(height: 16),
-              _buildTransactionDetails(),
+              _buildDetailSection(),
               const SizedBox(height: 16),
               _buildPhotosSection(),
               const SizedBox(height: 16),
@@ -339,60 +333,81 @@ class TransactionDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionHeader(BuildContext context) {
+  Widget _buildTransactionSummaryCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: transaction.type == 'Expense'
-            ? AppTheme.errorColor
-            : AppTheme.successColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [AppTheme.lightShadow],
-      ),
-      child: Row(
-        children: [
-          Icon(
-            CategoryHelper.getCategoryIcon(transaction.category),
-            color: Colors.white,
-            size: 40,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  transaction.category,
-                  style: AppTheme.textTheme.displayMedium?.copyWith(
-                    color: AppTheme.lightTextColor,
-                  ),
-                ),
-                Text(
-                  transaction.type,
-                  style: AppTheme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.lightTextColor.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            '₹${transaction.amount.toStringAsFixed(2)}',
-            style: AppTheme.textTheme.displayMedium?.copyWith(
-              color: AppTheme.lightTextColor,
-              fontWeight: FontWeight.bold,
-            ),
+        gradient: LinearGradient(
+          colors: transaction.type == 'Expense'
+              ? [AppTheme.errorColor, AppTheme.errorColor.withOpacity(0.7)]
+              : [AppTheme.successColor, AppTheme.successColor.withOpacity(0.7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Icon(
+                CategoryHelper.getCategoryIcon(transaction.category),
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    transaction.category,
+                    style: AppTheme.textTheme.displayMedium?.copyWith(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                  Text(
+                    transaction.type,
+                    style: AppTheme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '₹${transaction.amount.toStringAsFixed(2)}',
+              style: AppTheme.textTheme.displayMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTransactionDetails() {
+  Widget _buildDetailSection() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -402,9 +417,9 @@ class TransactionDetailsPage extends StatelessWidget {
               "Date",
               DateFormat('dd MMM yyyy').format(transaction.date.toDate()),
             ),
-            const Divider(),
+            const Divider(height: 24, thickness: 0.5),
             _buildDetailRow("Account", transaction.account),
-            const Divider(),
+            const Divider(height: 24, thickness: 0.5),
             _buildDetailRow(
               "Details",
               transaction.details ?? "No additional details",
@@ -412,7 +427,7 @@ class TransactionDetailsPage extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0);
   }
 
   Widget _buildDetailRow(String label, String value) {
@@ -425,11 +440,15 @@ class TransactionDetailsPage extends StatelessWidget {
             label,
             style: AppTheme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
+              color: AppTheme.mutedTextColor,
             ),
           ),
           Text(
             value,
-            style: AppTheme.textTheme.bodyLarge,
+            style: AppTheme.textTheme.bodyLarge?.copyWith(
+              color: AppTheme.darkTextColor,
+            ),
+            textAlign: TextAlign.right,
           ),
         ],
       ),
@@ -442,7 +461,10 @@ class TransactionDetailsPage extends StatelessWidget {
       children: [
         Text(
           "Attached Photos",
-          style: AppTheme.textTheme.displayMedium,
+          style: AppTheme.textTheme.displayMedium?.copyWith(
+            fontSize: 18,
+            color: AppTheme.darkTextColor,
+          ),
         ),
         const SizedBox(height: 8),
         FutureBuilder<List<PhotoModel>>(
@@ -507,46 +529,41 @@ class TransactionDetailsPage extends StatelessWidget {
           },
         ),
       ],
-    );
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
-          onPressed: () => _editTransaction(context),
-          style: AppTheme.elevatedButtonStyle.copyWith(
-            backgroundColor: MaterialStateProperty.all(AppTheme.secondaryColor),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => _editTransaction(context),
+            icon: const Icon(Icons.edit),
+            label: const Text('Edit'),
+            style: AppTheme.elevatedButtonStyle.copyWith(
+              backgroundColor: WidgetStateProperty.all(AppTheme.secondaryColor),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              ),
+            ),
           ),
-          child: const Text('Edit Transaction'),
         ),
-        ElevatedButton(
-          onPressed: () => _deleteTransaction(context),
-          style: AppTheme.elevatedButtonStyle.copyWith(
-            backgroundColor: MaterialStateProperty.all(AppTheme.errorColor),
-          ),
-          child: const Text('Delete Transaction'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Icon(CategoryHelper.getCategoryIcon(transaction.category),
-            color: CategoryHelper.getCategoryColor(transaction.category),
-            size: 36),
-        const SizedBox(width: 10),
-        Text(
-          transaction.category,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => _deleteTransaction(context),
+            icon: const Icon(Icons.delete),
+            label: const Text('Delete'),
+            style: AppTheme.elevatedButtonStyle.copyWith(
+              backgroundColor: WidgetStateProperty.all(AppTheme.errorColor),
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              ),
+            ),
           ),
         ),
       ],
-    );
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
   }
 }

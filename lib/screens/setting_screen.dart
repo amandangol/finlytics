@@ -3,19 +3,21 @@ import 'package:provider/provider.dart';
 import '../core/provider/theme_provider.dart';
 
 class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: const Text('Settings'),
       ),
       body: ListView(
         children: [
           ListTile(
-            title: Text('Theme'),
-            subtitle: Text('Choose your app theme'),
+            title: const Text('Theme'),
+            subtitle: const Text('Choose your app theme'),
             trailing: DropdownButton<ThemeMode>(
               value: themeProvider.themeMode,
               onChanged: (ThemeMode? newMode) {
@@ -24,7 +26,7 @@ class SettingsPage extends StatelessWidget {
                   themeProvider.setThemeMode(newMode);
                 }
               },
-              items: [
+              items: const [
                 DropdownMenuItem(
                   value: ThemeMode.system,
                   child: Text('System Default'),
@@ -41,9 +43,9 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
           // You can add more settings here in the future
-          Divider(),
+          const Divider(),
           ListTile(
-            title: Text('About'),
+            title: const Text('About'),
             onTap: () {
               // Add about app functionality
               showAboutDialog(

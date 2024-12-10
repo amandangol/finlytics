@@ -1,4 +1,3 @@
-import 'package:expense_tracker/features/home/presentation/components/custom_appbar.dart';
 import 'package:expense_tracker/features/home/presentation/widgets/custom_navigation_bar.dart';
 import 'package:expense_tracker/screens/turs_ai_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,7 +7,6 @@ import '../../../auth/presentation/pages/profile_page.dart';
 import '../../../transaction/presentation/pages/transaction_list/transaction_list_page.dart';
 import '../../../transaction/data/transaction_service.dart';
 import '../../data/usecases/user_service.dart';
-import '../widgets/welcome_card.dart';
 import 'home_content.dart';
 import '../widgets/accounts_dialog.dart';
 import '../widgets/username_input_dialog.dart';
@@ -102,7 +100,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showAccountsDialog() {
-    if (userModel != null && userModel!.accounts != null) {
+    if (userModel != null && userModel!.accounts.isNotEmpty) {
       showDialog(
         context: context,
         builder: (context) => AccountsDialog(
@@ -204,45 +202,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _ifPresentFilter(List<TransactionModel> transactions, String period) {
-    DateTime now = DateTime.now();
-    DateTime startDate = DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
-    switch (period) {
-      case 'Today':
-        startDate = DateTime(now.year, now.month, now.day);
-        break;
-      case 'This Week':
-        startDate = startDate.subtract(Duration(days: now.weekday - 1));
-        break;
-      case 'This Month':
-        startDate = DateTime(now.year, now.month, 1);
-        break;
-      case 'Overall':
-        startDate = DateTime(1970);
-        break;
-      default:
-        startDate = startDate.subtract(Duration(days: now.weekday - 1));
-    }
-    // Filter transactions using where
-    if (period != "Overall") {
-      List<TransactionModel> filteredTransactions =
-          transactions.where((transaction) {
-        final transactionDate = transaction.date.toDate();
-        return transactionDate.isAfter(startDate) ||
-            transactionDate.isAtSameMomentAs(startDate);
-      }).toList();
-      _calculateOverviewData(filteredTransactions);
-      setState(() {
-        recentTransactions = filteredTransactions.take(3).toList();
-      });
-    } else {
-      _calculateOverviewData(transactions);
-      setState(() {
-        recentTransactions = transactions.take(3).toList();
-      });
-    }
-  }
-
   void _calculateOverviewData(List<TransactionModel> transactions) {
     double income = 0.0;
     double expense = 0.0;
@@ -286,10 +245,7 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         // Replace the existing AppBar with HomeAppBar
-        appBar: CustomAppBar(
-          userModel: userModel,
-          user: user,
-        ),
+
         backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
           child: userModel == null
@@ -301,28 +257,9 @@ class _HomePageState extends State<HomePage> {
                 )
               : _buildBody(),
         ),
-        bottomNavigationBar: CustomNavigationBar(
+        bottomNavigationBar: SleekNavigationBar(
           selectedIndex: _selectedIndex,
           onItemTapped: _onItemTapped,
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFFEF6C06),
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          onPressed: () async {
-            bool? result = await Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => AddTransactionPage(userModel: userModel!),
-            ));
-
-            if (result == true) {
-              totalDataFetched = false;
-              getUser();
-            }
-          },
-          child: const Icon(Icons.add, size: 30, color: Colors.white),
         ),
       ),
     );
@@ -334,7 +271,10 @@ class _HomePageState extends State<HomePage> {
       children: [
         _selectedIndex == 0 ? _buildHomeContent() : Container(),
         _selectedIndex == 1 ? _buildChartsContent() : Container(),
-        _selectedIndex == 2 ? _tursAiPage : Container(),
+        _selectedIndex == 2
+            ? AddTransactionPage(userModel: userModel!)
+            : Container(),
+        _selectedIndex == 3 ? _tursAiPage : Container(),
         ProfilePage(
           userModel: userModel!,
         )

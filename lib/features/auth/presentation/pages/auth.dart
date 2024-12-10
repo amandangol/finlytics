@@ -1,8 +1,8 @@
+import 'package:expense_tracker/features/auth/presentation/pages/signin_page.dart.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../home/presentation/pages/home_page.dart';
-import '../../../../screens/get_started_page.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -37,7 +37,7 @@ class _AuthPageState extends State<AuthPage> {
       body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          if (isLoggedIn == null) {
+          if (isLoading) {
             return const Center(
                 child: CircularProgressIndicator(color: Color(0xFFEF6C06)));
           }
@@ -48,7 +48,7 @@ class _AuthPageState extends State<AuthPage> {
           }
 
           // User not logged in
-          return const GetStartedPage();
+          return const SigninPage();
         },
       ),
     );

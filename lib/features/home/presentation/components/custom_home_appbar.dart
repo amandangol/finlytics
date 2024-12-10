@@ -3,15 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../models.dart';
 import '../../../../screens/setting_screen.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final UserModel? userModel;
   final User? user;
+  final String? title;
 
-  const CustomAppBar({
-    Key? key,
-    required this.userModel,
-    required this.user,
-  }) : super(key: key);
+  const CustomHomeAppBar({super.key, this.userModel, this.user, this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +22,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           Text(
-            'Finanalytics',
+            title!,
             style: TextStyle(
               color: isDarkMode ? Colors.orangeAccent : const Color(0xFFEF6C06),
               fontWeight: FontWeight.bold,
@@ -46,7 +43,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SettingsPage(),
+                      builder: (context) => const SettingsPage(),
                     ));
               },
               child: Icon(

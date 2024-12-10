@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../models.dart';
-import 'account.dart';
 
 class UserModel {
   String username;

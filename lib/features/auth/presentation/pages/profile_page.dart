@@ -458,7 +458,7 @@ class _ProfilePageState extends State<ProfilePage> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
                       Color(0xFFFF6B6B),
@@ -475,16 +475,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.white.withOpacity(0.3),
-                        child: Icon(
+                        child: const Icon(
                           Icons.person,
                           size: 80,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Text(
                         widget.userModel.username,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
@@ -492,7 +492,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       Text(
                         widget.userModel.email,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
                         ),
@@ -504,7 +504,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           SliverPadding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Account Settings Section
@@ -531,7 +531,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
 
                 // Danger Zone Section
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 _buildSectionTitle('Danger Zone', color: Colors.red),
                 _buildSettingsCard(
                   context,
@@ -578,12 +578,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }) {
     return Card(
       elevation: 2,
-      margin: EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Icon(
           icon,
           color: isDestructive ? Colors.red : Theme.of(context).primaryColor,

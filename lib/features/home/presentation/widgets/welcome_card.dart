@@ -25,11 +25,11 @@ class WelcomeCard extends StatelessWidget {
     return SingleChildScrollView(
       // Replaced CustomScrollView with SingleChildScrollView
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: isDarkMode
               ? AppTheme.darkTheme.cardColor.withOpacity(0.8)
-              : Colors.white,
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(

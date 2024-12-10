@@ -71,7 +71,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         return Theme(
           data: currentTheme == Brightness.light
               ? AppTheme.lightTheme.copyWith(
-                  colorScheme: ColorScheme.light(
+                  colorScheme: const ColorScheme.light(
                     primary: AppTheme.primaryColor,
                     onPrimary: AppTheme.lightTextColor,
                     surface: AppTheme.surfaceColor,
@@ -79,7 +79,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   ),
                 )
               : AppTheme.darkTheme.copyWith(
-                  colorScheme: ColorScheme.dark(
+                  colorScheme: const ColorScheme.dark(
                     primary: AppTheme.primaryColor,
                     onPrimary: AppTheme.lightTextColor,
                     surface: AppTheme.cardColor,
@@ -232,12 +232,13 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       builder: (context) => AlertDialog(
         title: Text(
           title,
-          style: TextStyle(color: AppTheme.primaryColor),
+          style: const TextStyle(color: AppTheme.primaryColor),
         ),
         content: Text(content),
         actions: [
           TextButton(
-            child: Text('OK', style: TextStyle(color: AppTheme.primaryColor)),
+            child: const Text('OK',
+                style: TextStyle(color: AppTheme.primaryColor)),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -252,7 +253,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: "Add Transaction",
       ),
       body: _isSubmitting
@@ -342,7 +343,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                         child: Text(
                           'Submit Transaction',
                           style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: AppTheme.lightTextColor,
                                   ),
                         ),

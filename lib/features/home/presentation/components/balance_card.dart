@@ -7,11 +7,10 @@ class BalanceCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const BalanceCard(
-      {Key? key,
+      {super.key,
       required this.userModel,
       this.selectedAccount,
-      required this.onTap})
-      : super(key: key);
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {

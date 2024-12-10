@@ -1,7 +1,7 @@
 import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/auth.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/forgot_password_page.dart';
-import 'package:expense_tracker/features/auth/presentation/pages/login_signup_page.dart';
+import 'package:expense_tracker/features/auth/presentation/pages/signin_page.dart.dart';
 import 'package:expense_tracker/screens/privacy_policy_page.dart';
 import 'package:expense_tracker/screens/terms_conditions_page.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           home: const AuthPage(),
           routes: {
-            '/login': (context) => const LoginSignupPage(),
+            '/login': (context) => const SigninPage(),
             '/forgot-password': (context) => const ForgotPasswordPage(),
             '/terms-conditions': (context) => TermsConditionsPage(),
             '/privacy-policy': (context) => PrivacyPolicyPage(),

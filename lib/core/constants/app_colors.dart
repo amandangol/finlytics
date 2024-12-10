@@ -1,106 +1,108 @@
 import 'package:flutter/material.dart';
 
-// Primary Color Palette
-// A soothing and balanced palette with soft blues, grays, and subtle accents
+// Enhanced Color Palette with More Variety and Depth
 class AppTheme {
-  static const Color primaryColor =
-      Color(0xFF5C9EFF); // Softer, slightly lighter blue
-  static const Color secondaryColor =
-      Color(0xFF7AB8FF); // Lighter secondary blue
-  static const Color accentColor =
-      Color(0xFF4EDDC2); // Soft teal, slightly brighter
+  // Primary Color Family
+  static const Color primaryColor = Color(0xFF3498DB); // Vibrant Blue
+  static const Color primaryLightColor = Color(0xFF5DADE2); // Lighter Blue
+  static const Color primaryDarkColor = Color(0xFF2874A6); // Dark Blue
 
-  // Dark Theme Neutral Colors
-  static const Color backgroundColor =
-      Color(0xFF1E2330); // Deep but not pure black
-  static const Color surfaceColor =
-      Color(0xFF2A3040); // Slightly lighter than background
-  static const Color cardColor = Color(0xFF3A4250); // Lighter surface for cards
-  static const Color dividerColor = Color(0xFF4A5364); // Lighter divider
+  // Secondary Color Family
+  static const Color secondaryColor = Color(0xFF2ECC71); // Bright Green
+  static const Color secondaryLightColor = Color(0xFF58D68D); // Light Green
+  static const Color secondaryDarkColor = Color(0xFF27AE60); // Dark Green
+
+  // Accent Colors
+  static const Color accentColor = Color(0xFFE74C3C); // Vibrant Red
+  static const Color accentLightColor = Color(0xFFEC7063); // Light Red
+  static const Color accentDarkColor = Color(0xFFC0392B); // Dark Red
+
+  // Neutral Colors
+  static const Color backgroundColor = Color(0xFFF4F6F7); // Light Gray
+  static const Color surfaceColor = Color(0xFFFFFFFF); // Pure White
+  static const Color cardColor = Color(0xFFF8F9F9); // Very Light Gray
+  static const Color dividerColor = Color(0xFFE5E7E9); // Soft Gray
 
   // Text Colors
-  static const Color darkTextColor = Color(0xFF2C3E50); // Charcoal Gray
+  static const Color darkTextColor = Color(0xFF2C3E50); // Deep Blue Gray
   static const Color lightTextColor = Color(0xFFFFFFFF); // White
-  static const Color mutedTextColor = Color(0xFF95A5A6); // Muted gray text
+  static const Color mutedTextColor = Color(0xFF7F8C8D); // Muted Gray
 
-  // Error and Warning Colors
-  static const Color errorColor = Color(0xFFD32F2F); // Red
-  static const Color warningColor = Color(0xFFFFA000); // Amber
+  // Semantic Colors
+  static const Color errorColor = Color(0xFFD32F2F); // Strong Red
+  static const Color warningColor = Color(0xFFF39C12); // Bright Orange
+  static const Color successColor = Color(0xFF27AE60); // Confident Green
+  static const Color infoColor = Color(0xFF3498DB); // Informative Blue
 
-  // Success and Info Colors
-  static const Color successColor = Color(0xFF388E3C); // Green
-  static const Color infoColor = Color(0xFF1976D2); // Blue
-
-  // Gradients
+  // Gradient Variations
   static const LinearGradient primaryGradient = LinearGradient(
+    colors: [primaryColor, primaryLightColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      primaryColor,
-      secondaryColor,
-    ],
   );
 
-  static const LinearGradient accentGradient = LinearGradient(
+  static const LinearGradient secondaryGradient = LinearGradient(
+    colors: [secondaryColor, secondaryLightColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      accentColor,
-      secondaryColor,
-    ],
   );
 
-  // Shadows
-  static const BoxShadow lightShadow = BoxShadow(
+  // Enhanced Shadows
+  static const BoxShadow softShadow = BoxShadow(
+    color: Colors.black12,
+    blurRadius: 6,
+    offset: Offset(0, 3),
+  );
+
+  static const BoxShadow deepShadow = BoxShadow(
     color: Colors.black26,
-    blurRadius: 8,
-    offset: Offset(0, 4),
-  );
-
-  static const BoxShadow darkShadow = BoxShadow(
-    color: Colors.black38,
-    blurRadius: 10,
+    blurRadius: 12,
     offset: Offset(0, 6),
   );
 
-  // Text Styles
+  // Comprehensive Text Theme
   static final TextTheme textTheme = TextTheme(
-    displayLarge: TextStyle(
-      fontSize: 24,
+    displayLarge: const TextStyle(
+      fontSize: 28,
       fontWeight: FontWeight.bold,
       color: darkTextColor,
+      letterSpacing: 0.5,
     ),
-    displayMedium: TextStyle(
-      fontSize: 20,
+    displayMedium: const TextStyle(
+      fontSize: 22,
       fontWeight: FontWeight.w600,
       color: darkTextColor,
+      letterSpacing: 0.3,
     ),
-    bodyLarge: TextStyle(
+    bodyLarge: const TextStyle(
       fontSize: 16,
       color: darkTextColor,
+      height: 1.5,
     ),
-    bodyMedium: TextStyle(
+    bodyMedium: const TextStyle(
       fontSize: 14,
       color: mutedTextColor,
+      height: 1.4,
     ),
     bodySmall: TextStyle(
       fontSize: 12,
-      color: mutedTextColor.withOpacity(0.8),
+      color: mutedTextColor.withOpacity(0.7),
     ),
   );
 
-  // Button Themes
+  // Advanced Button Styles
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: lightTextColor,
     backgroundColor: primaryColor,
     shadowColor: Colors.black26,
     elevation: 4,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
     ),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
   );
 
-  // App Theme Data
+  // Light Theme Configuration
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: primaryColor,
@@ -108,7 +110,7 @@ class AppTheme {
     appBarTheme: AppBarTheme(
       backgroundColor: surfaceColor,
       elevation: 2,
-      iconTheme: IconThemeData(color: darkTextColor),
+      iconTheme: const IconThemeData(color: darkTextColor),
       titleTextStyle: textTheme.displayMedium,
       shadowColor: dividerColor,
     ),
@@ -119,7 +121,6 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
-      background: backgroundColor,
       surface: surfaceColor,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -127,18 +128,19 @@ class AppTheme {
     ),
   );
 
+  // Dark Theme Configuration
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primaryColor: primaryColor,
-    scaffoldBackgroundColor: Color(0xFF121212),
+    primaryColor: primaryDarkColor,
+    scaffoldBackgroundColor: const Color(0xFF121212),
     appBarTheme: AppBarTheme(
-      backgroundColor: Color(0xFF1B1B1B),
+      backgroundColor: const Color(0xFF1F1F1F),
       elevation: 2,
-      iconTheme: IconThemeData(color: lightTextColor),
+      iconTheme: const IconThemeData(color: lightTextColor),
       titleTextStyle: textTheme.displayMedium?.copyWith(color: lightTextColor),
       shadowColor: Colors.black45,
     ),
-    cardColor: Color(0xFF1E1E1E),
+    cardColor: const Color(0xFF1E1E1E),
     dividerColor: Colors.white24,
     textTheme: textTheme.copyWith(
       bodyLarge: textTheme.bodyLarge!.copyWith(color: lightTextColor),
@@ -146,17 +148,16 @@ class AppTheme {
     ),
     colorScheme: ColorScheme.fromSwatch(
       brightness: Brightness.dark,
-      primarySwatch: Colors.blue,
+      primarySwatch: Colors.blueGrey,
     ).copyWith(
-      primary: primaryColor,
-      secondary: secondaryColor,
+      primary: primaryDarkColor,
+      secondary: secondaryDarkColor,
       error: errorColor,
-      background: Color(0xFF121212),
-      surface: Color(0xFF1B1B1B),
+      surface: const Color(0xFF1F1F1F),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: elevatedButtonStyle.copyWith(
-        backgroundColor: MaterialStateProperty.all(primaryColor),
+        backgroundColor: WidgetStateProperty.all(primaryDarkColor),
       ),
     ),
   );

@@ -8,6 +8,7 @@ import '../../../../core/provider/theme_provider.dart';
 import '../../../../core/utils/category_helper.dart';
 import '../../../../models.dart';
 import '../../../transaction/presentation/pages/transaction_details/transaction_details_page.dart';
+import '../widgets/welcome_card.dart';
 
 class RedesignedHomeContent extends StatefulWidget {
   final UserModel userModel;
@@ -59,33 +60,66 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final _isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final isDarkMode0 = themeProvider.themeMode == ThemeMode.dark;
 
-    final backgroundColor = _isDarkMode
+    final backgroundColor = isDarkMode0
         ? AppTheme.darkTheme.scaffoldBackgroundColor
         : AppTheme.lightTheme.scaffoldBackgroundColor;
 
-    final cardColor = _isDarkMode
+    final cardColor = isDarkMode0
         ? AppTheme.darkTheme.cardColor
         : AppTheme.lightTheme.cardColor;
 
     final textColor =
-        _isDarkMode ? AppTheme.lightTextColor : AppTheme.darkTextColor;
-
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+        isDarkMode0 ? AppTheme.lightTextColor : AppTheme.darkTextColor;
 
     return Theme(
-      data: _isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
+      data: isDarkMode0 ? AppTheme.darkTheme : AppTheme.lightTheme,
       child: Scaffold(
         backgroundColor: backgroundColor,
         body: SafeArea(
           child: CustomScrollView(
             slivers: [
+              // SliverAppBar with a welcome message
+              SliverAppBar(
+                expandedHeight: 200,
+                floating: false,
+                pinned: false,
+                backgroundColor: const Color.fromARGB(255, 170, 221, 254),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(
+                            'https://media.istockphoto.com/id/1424757003/photo/budget-and-financial-planning-concept-including-a-management-or-executive-cfo-estimating-the.jpg?s=612x612&w=0&k=20&c=-qReHcxce_QnKsWlvV1x7jOndAAjPpiuFR7fZ7AUfQ0='), // Replace with your image path
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    "Finlytics",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w100,
+                      letterSpacing: 2,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ),
               SliverPadding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
+                    WelcomeCard(
+                      userModel: widget.userModel,
+                      totalIncome: widget.totalIncome,
+                      totalExpense: widget.totalExpense,
+                      // isDarkMode: isDarkMode,
+                      // onToggleDarkMode: onToggleDarkMode,
+                    ),
+                    const SizedBox(height: 20),
                     _buildBalanceCard(cardColor, textColor),
                     const SizedBox(height: 20),
                     _buildOverviewSection(cardColor, textColor),
@@ -126,13 +160,13 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                   widget.selectedAccount != null
                       ? widget.selectedAccount!.name
                       : 'Total Balance',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Icon(
+                const Icon(
                   LucideIcons.wallet,
                   color: Colors.white70,
                   size: 30,
@@ -150,14 +184,14 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
               ),
             ),
             const SizedBox(height: 10),
-            Row(
+            const Row(
               children: [
-                const Icon(
+                Icon(
                   LucideIcons.info,
                   color: Colors.white70,
                   size: 16,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   'Tap to view account details',
                   style: TextStyle(
@@ -479,7 +513,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
               ),
               GestureDetector(
                 onTap: widget.onViewAllTransactions,
-                child: Text(
+                child: const Text(
                   'View All',
                   style: TextStyle(
                     color: AppTheme.primaryColor,
@@ -536,7 +570,7 @@ class _RedesignedHomeContentState extends State<RedesignedHomeContent>
                   ),
                 ),
                 title: Text(
-                  transaction.category!,
+                  transaction.category,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: isDarkMode

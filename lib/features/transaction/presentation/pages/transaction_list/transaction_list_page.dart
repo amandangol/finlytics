@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:expense_tracker/core/common/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
@@ -36,41 +37,39 @@ class _TransactionListPageState extends State<TransactionListPage> {
   @override
   void initState() {
     super.initState();
-    var initializationSettingsAndroid =
-        const AndroidInitializationSettings('@mipmap/ic_launcher');
-    var initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-    flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
+    _getTransactions();
+  }
 
+  Future<void> _getTransactions() async {
     if (widget.transactions != null && widget.transactions!.isNotEmpty) {
       _transactions = widget.transactions!;
       _filterTransactions(_selectedPeriod);
       _isLoading = false;
-    } else {
-      _fetchAllTransactions();
+      return;
+    }
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('transactions')
+          .where('userId', isEqualTo: widget.userId)
+          .orderBy('date', descending: true)
+          .get();
+
+      setState(() {
+        _transactions = querySnapshot.docs
+            .map((doc) => TransactionModel.fromDocument(doc))
+            .toList();
+        _filterTransactions(_selectedPeriod);
+        _isLoading = false;
+      });
+    } catch (error) {
+      print(error);
+      // Handle errors appropriately
     }
   }
 
-  Future<void> _fetchAllTransactions() async {
-    QuerySnapshot transactionDocs = await FirebaseFirestore.instance
-        .collection('transactions')
-        .where('userId', isEqualTo: widget.userId)
-        .orderBy('date', descending: true)
-        .get();
-
-    setState(() {
-      _transactions = transactionDocs.docs
-          .map((doc) => TransactionModel.fromDocument(doc))
-          .toList();
-      _filterTransactions(_selectedPeriod);
-      _isLoading = false;
-    });
-  }
-
   void _filterTransactions(String period) {
-    DateTime now = DateTime.now();
+    final now = DateTime.now();
     DateTime startDate = DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
 
     switch (period) {
@@ -92,14 +91,13 @@ class _TransactionListPageState extends State<TransactionListPage> {
       case 'Custom':
         if (_customDateRange != null) {
           startDate = _customDateRange!.start;
-          setState(() {
-            _filteredTransactions = _transactions.where((transaction) {
-              DateTime transactionDate = transaction.date.toDate();
-              return transactionDate.isAfter(startDate) &&
-                  transactionDate.isBefore(_customDateRange!.end
-                      .add(const Duration(hours: 23, minutes: 59)));
-            }).toList();
-          });
+          _filteredTransactions = _transactions.where((transaction) {
+            final transactionDate = transaction.date.toDate();
+            return transactionDate.isAfter(startDate) &&
+                transactionDate.isBefore(_customDateRange!.end.add(
+                  const Duration(hours: 23, minutes: 59),
+                ));
+          }).toList();
           return;
         } else {
           startDate = DateTime(1970);
@@ -187,7 +185,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
                         value: selectedDownloadPeriod,
                         dropdownColor: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(8.0),
-                        icon: Icon(Icons.arrow_drop_down,
+                        icon: const Icon(Icons.arrow_drop_down,
                             color: AppTheme.primaryColor),
                         items: [
                           'Today',
@@ -633,20 +631,17 @@ class _TransactionListPageState extends State<TransactionListPage> {
     );
   }
 
+  // ... remaining code for _selectCustomDateRange, _showDownloadDialog,
+  // _downloadTransactions, _downloadCSV, _downloadPDF (unchanged)
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Transactions',
-          style: AppTheme.textTheme.displayMedium?.copyWith(
-              color: AppTheme.lightTheme.appBarTheme.titleTextStyle?.color),
-        ),
-        backgroundColor: AppTheme.surfaceColor,
-        elevation: 1,
+      appBar: CustomAppBar(
+        title: "Transactions",
         actions: [
           IconButton(
-            icon: Icon(Icons.download_rounded, color: AppTheme.darkTextColor),
+            icon: const Icon(Icons.download_rounded, color: AppTheme.darkTextColor),
             onPressed: _showDownloadDialog,
           ),
         ],
@@ -679,7 +674,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
           isExpanded: true,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           dropdownColor: AppTheme.surfaceColor,
-          icon: Icon(Icons.arrow_drop_down, color: AppTheme.primaryColor),
+          icon: const Icon(Icons.arrow_drop_down, color: AppTheme.primaryColor),
           items: [
             'Today',
             'This Week',
@@ -713,7 +708,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
   Widget _buildTransactionList() {
     if (_isLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           color: AppTheme.primaryColor,
         ),
@@ -737,7 +732,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
         height: 1,
       ),
       itemBuilder: (context, index) {
-        TransactionModel transaction = _filteredTransactions[index];
+        final transaction = _filteredTransactions[index];
         return _buildTransactionListItem(transaction);
       },
     );
@@ -772,7 +767,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
             fontWeight: FontWeight.bold),
       ),
       onTap: () async {
-        bool? result = await Navigator.of(context).push(
+        final result = await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) =>
                 TransactionDetailsPage(transaction: transaction),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -147,144 +148,24 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Financial Insights',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFFEF6C06),
             fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                blurRadius: 10.0,
-                color: Colors.black26,
-                offset: Offset(2.0, 2.0),
-              ),
-            ],
           ),
         ),
-        backgroundColor: const Color(0xFFEF6C06),
+        backgroundColor: AppTheme.surfaceColor,
         elevation: 0,
         centerTitle: true,
       ),
-      body: _buildChartsPageBody(),
-    );
-  }
-
-  Widget _buildChartsPageBody() {
-    return Column(
-      children: [
-        _buildPeriodSelector(),
-        _buildChartTypeToggle(),
-        Expanded(
-          child: FadeTransition(
-            opacity: _animationController,
-            child: _buildCharts(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPeriodSelector() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            ...['Overall', 'Today', 'This Week', 'This Month', 'This Year']
-                .map((period) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: ChoiceChip(
-                        label: Text(period),
-                        selected: _selectedPeriod == period,
-                        onSelected: (_) => _filterTransactions(period),
-                        selectedColor: const Color(0xFFEF6C06),
-                        labelStyle: TextStyle(
-                          color: _selectedPeriod == period
-                              ? Colors.white
-                              : Colors.black87,
-                        ),
-                      ),
-                    ))
-                .toList(),
-            IconButton(
-              icon: Icon(
-                Icons.date_range,
-                color: const Color(0xFFEF6C06),
-                shadows: [
-                  Shadow(
-                    blurRadius: 10.0,
-                    color: Colors.black12,
-                    offset: const Offset(1.0, 1.0),
-                  ),
-                ],
-              ),
-              onPressed: () => _selectCustomDateRange(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChartTypeToggle() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
         children: [
+          _buildFilterSection(),
           Expanded(
-            child: ChoiceChip(
-              label: const Text('Expense'),
-              selected: _selectedChartType == 'Expense',
-              onSelected: (_) {
-                if (_selectedChartType != 'Expense') _toggleChartType();
-              },
-              selectedColor: Colors.redAccent,
-              labelStyle: TextStyle(
-                color: _selectedChartType == 'Expense'
-                    ? Colors.white
-                    : Colors.black87,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ChoiceChip(
-              label: const Text('Income'),
-              selected: _selectedChartType == 'Income',
-              onSelected: (_) {
-                if (_selectedChartType != 'Income') _toggleChartType();
-              },
-              selectedColor: Colors.green,
-              labelStyle: TextStyle(
-                color: _selectedChartType == 'Income'
-                    ? Colors.white
-                    : Colors.black87,
-              ),
+            child: FadeTransition(
+              opacity: _animationController,
+              child: _buildChartsContent(),
             ),
           ),
         ],
@@ -292,23 +173,163 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
     );
   }
 
-  Widget _buildCharts() {
+  Widget _buildFilterSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Period Filter
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ...['Overall', 'Today', 'This Week', 'This Month', 'This Year']
+                    .map((period) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ChoiceChip(
+                            label: Text(period),
+                            selected: _selectedPeriod == period,
+                            onSelected: (_) => _filterTransactions(period),
+                            selectedColor: const Color(0xFFEF6C06),
+                            backgroundColor: Colors.grey[200],
+                            labelStyle: TextStyle(
+                              color: _selectedPeriod == period
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontWeight: _selectedPeriod == period
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ))
+                    ,
+                IconButton(
+                  icon: const Icon(
+                    Icons.calendar_today,
+                    color: Color(0xFFEF6C06),
+                  ),
+                  onPressed: () => _selectCustomDateRange(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Chart Type Toggle
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_selectedChartType != 'Expense') _toggleChartType();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _selectedChartType == 'Expense'
+                        ? Colors.redAccent
+                        : Colors.grey[300],
+                    foregroundColor: _selectedChartType == 'Expense'
+                        ? Colors.white
+                        : Colors.black87,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: const Text('Expense'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_selectedChartType != 'Income') _toggleChartType();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _selectedChartType == 'Income'
+                        ? Colors.green
+                        : Colors.grey[300],
+                    foregroundColor: _selectedChartType == 'Income'
+                        ? Colors.white
+                        : Colors.black87,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: const Text('Income'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartsContent() {
     return ListView(
       physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        _buildChartContainer(
+        _buildChartCard(
           'Income vs. Expense',
           _buildIncomeExpenseBarChart(),
         ),
-        _buildChartContainer(
+        _buildChartCard(
           'Monthly Transactions',
           _buildMonthlyLineChart(),
         ),
-        _buildChartContainer(
+        _buildChartCard(
           'Category Breakdown',
           _buildCategoryBarChart(),
         ),
       ],
+    );
+  }
+
+  Widget _buildChartCard(String title, Widget chart) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFEF6C06),
+              ),
+            ),
+          ),
+          chart,
+        ],
+      ),
     );
   }
 
@@ -333,15 +354,15 @@ class _ImprovedChartsPageState extends State<ImprovedChartsPage>
             padding: const EdgeInsets.all(12.0),
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFFEF6C06),
+                color: Color(0xFFEF6C06),
                 shadows: [
                   Shadow(
                     blurRadius: 10.0,
                     color: Colors.black12,
-                    offset: const Offset(1.0, 1.0),
+                    offset: Offset(1.0, 1.0),
                   ),
                 ],
               ),
