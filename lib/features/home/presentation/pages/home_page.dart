@@ -1,18 +1,18 @@
-import 'package:expense_tracker/core/utils/error_utils.dart';
-import 'package:expense_tracker/features/home/presentation/widgets/custom_navigation_bar.dart';
-import 'package:expense_tracker/features/gemini_chat_ai/presentation/screens/gemini_chat_ai.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/error_utils.dart';
 import '../../../../models/account_model.dart';
 import '../../../../models/transaction_model.dart';
 import '../../../../models/user_model.dart';
+import '../../../gemini_chat_ai/presentation/screens/gemini_chat_ai.dart';
 import '../../../profile/screens/profile_page.dart';
 import '../../../transaction/presentation/pages/transaction_list/transaction_list_page.dart';
 import '../../../transaction/data/transaction_service.dart';
 import '../../../auth/services/user_service.dart';
+import '../widgets/custom_navigation_bar.dart';
 import 'home_content.dart';
 import '../widgets/accounts_dialog.dart';
 import '../widgets/username_input_dialog.dart';
@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       builder: (context) => AlertDialog(
         title: Text('Rename Account: $accountName'),
         content: TextField(
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'Enter new account name',
           ),
           onSubmitted: (newName) async {

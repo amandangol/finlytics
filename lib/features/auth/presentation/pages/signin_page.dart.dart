@@ -1,14 +1,14 @@
-import 'package:expense_tracker/features/auth/presentation/pages/signup_page.dart';
+import 'package:finlytics/features/auth/presentation/pages/auth_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:expense_tracker/features/auth/presentation/pages/auth_page.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/error_utils.dart';
 import '../widgets/auth_textfield.dart';
 import '../widgets/authpage_container.dart';
 import 'forgot_password_page.dart';
+import 'signup_page.dart';
 
 class SigninPage extends StatefulWidget {
   const SigninPage({super.key});

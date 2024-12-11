@@ -1,11 +1,11 @@
-import 'package:expense_tracker/core/common/custom_appbar.dart';
-import 'package:expense_tracker/features/home/presentation/pages/home_page.dart';
+import 'package:finlytics/features/home/presentation/pages/home_page.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import '../../../../../core/common/custom_appbar.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/provider/currency_provider.dart';
 import '../../../../../core/utils/category_helper.dart';

@@ -1,5 +1,6 @@
-import 'package:expense_tracker/features/profile/widgets/settings_card.dart';
 import 'package:flutter/material.dart';
+
+import 'settings_card.dart';
 
 class DangerZoneSection extends StatelessWidget {
   final VoidCallback onDeleteAccountTap;

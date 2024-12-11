@@ -1,4 +1,3 @@
-import 'package:expense_tracker/features/auth/presentation/pages/signin_page.dart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -6,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/error_utils.dart';
 import '../widgets/auth_textfield.dart';
 import '../widgets/authpage_container.dart';
+import 'signin_page.dart.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

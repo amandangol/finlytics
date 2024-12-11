@@ -1,11 +1,11 @@
-import 'package:expense_tracker/core/common/custom_appbar.dart';
-import 'package:expense_tracker/core/constants/app_colors.dart';
-import 'package:expense_tracker/features/gemini_chat_ai/services/chatprovider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/common/custom_appbar.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../services/ai_service.dart';
+import '../../services/chatprovider.dart';
 import '../../services/speech_service.dart';
 import '../widgets/message_input_field.dart';
 import '../widgets/message_list.dart';

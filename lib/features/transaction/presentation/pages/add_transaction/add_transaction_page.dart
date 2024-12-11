@@ -1,4 +1,4 @@
-import 'package:expense_tracker/core/common/custom_appbar.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -6,6 +6,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import '../../../../../core/common/custom_appbar.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/error_utils.dart';
 import '../../../../../models/photo_model.dart';
@@ -17,7 +18,6 @@ import 'widgets/amount_input_widget.dart';
 import 'widgets/category_dropdown_widget.dart';
 import 'widgets/date_input_widget.dart';
 import 'widgets/details_input_widget.dart';
-import 'widgets/photo_section_widget.dart';
 import 'widgets/submit_button.dart';
 import 'widgets/type_dropdown_widget.dart';
 import 'widgets/common_input_decoration.dart';
@@ -151,7 +151,6 @@ class _AddTransactionPageState extends State<AddTransactionPage>
       return;
     }
 
-    // Image picking logic remains the same as in the original implementation
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source);
 
@@ -163,10 +162,23 @@ class _AddTransactionPageState extends State<AddTransactionPage>
   }
 
   Future<String> _uploadImage(File image) async {
-    final storageRef = FirebaseStorage.instance.ref().child(
-        'transaction_photos/${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}');
-    await storageRef.putFile(image);
-    return await storageRef.getDownloadURL();
+    try {
+      final storageRef = FirebaseStorage.instance.ref().child(
+          'transaction_photos/${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}');
+
+      await storageRef.putFile(image).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Image upload timed out');
+        },
+      );
+
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      // Log the error and rethrow
+      print('Image upload error: $e');
+      rethrow;
+    }
   }
 
   Future<void> _submitTransaction() async {
@@ -256,6 +268,11 @@ class _AddTransactionPageState extends State<AddTransactionPage>
           );
         },
       );
+
+      // Remove photos after submission
+      setState(() {
+        _selectedPhotos.clear();
+      });
     } catch (e) {
       setState(() {
         _isSubmitting = false;
@@ -265,6 +282,7 @@ class _AddTransactionPageState extends State<AddTransactionPage>
         message: 'Failed to submit transaction: ${e.toString()}',
         color: AppTheme.errorColor,
         icon: Icons.error_outline,
+        isError: true,
       );
     }
   }
@@ -401,18 +419,21 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                                     prefixIcon: Icons.account_balance_wallet),
                               ),
                               const SizedBox(height: 16),
-                              PhotoSectionWidget(
-                                selectedPhotos: _selectedPhotos,
-                                onCameraPressed: () =>
-                                    _pickImage(ImageSource.camera),
-                                onGalleryPressed: () =>
-                                    _pickImage(ImageSource.gallery),
-                                onPhotoRemoved: (index) {
-                                  setState(() {
-                                    _selectedPhotos.removeAt(index);
-                                  });
-                                },
-                              ),
+
+                              // ***********************FIREBASE STORAGE IS NOT FREE, SO WILL IMPLEMENT PHOTOS SECTION LATER******////////////////////////////////////
+
+                              // PhotoSectionWidget(
+                              //   selectedPhotos: _selectedPhotos,
+                              //   onCameraPressed: () =>
+                              //       _pickImage(ImageSource.camera),
+                              //   onGalleryPressed: () =>
+                              //       _pickImage(ImageSource.gallery),
+                              //   onPhotoRemoved: (index) {
+                              //     setState(() {
+                              //       _selectedPhotos.removeAt(index);
+                              //     });
+                              //   },
+                              // ),
                               const SizedBox(height: 16),
                               AnimatedBuilder(
                                 animation: _animationController,

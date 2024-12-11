@@ -1,5 +1,5 @@
-import 'package:expense_tracker/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import '../../../../../core/constants/app_colors.dart';
 
 class OnboardingPageWidget extends StatelessWidget {
   final String? image;

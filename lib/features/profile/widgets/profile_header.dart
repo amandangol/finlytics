@@ -12,7 +12,7 @@ class ProfileHeader extends StatelessWidget {
   final bool isEditable;
 
   const ProfileHeader({
-    Key? key,
+    super.key,
     required this.user,
     this.onImageTap,
     this.onUsernameTap,
@@ -20,7 +20,7 @@ class ProfileHeader extends StatelessWidget {
     this.backgroundGradientEnd,
     this.expandedHeight = 280.0,
     this.isEditable = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,39 +72,43 @@ class _ProfileAvatar extends StatelessWidget {
   final double radius;
   final Color? backgroundColor;
 
-  const _ProfileAvatar({
-    this.imageUrl,
-    this.onTap,
-    this.isEditable = true,
-    this.radius = 70,
-    this.backgroundColor,
-  });
+  const _ProfileAvatar(
+      {this.imageUrl,
+      this.onTap,
+      this.isEditable = true,
+      this.backgroundColor,
+      this.radius = 64});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        GestureDetector(
-          onTap: onTap,
-          child: CircleAvatar(
-            radius: radius,
-            backgroundColor: backgroundColor ?? Colors.white.withOpacity(0.3),
-            backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
-            child: imageUrl == null
-                ? const Icon(
-                    Icons.person,
-                    size: 80,
-                    color: Colors.white,
-                  )
-                : null,
-          ),
+        CircleAvatar(
+          radius: radius,
+          backgroundColor: backgroundColor ?? Colors.white.withOpacity(0.3),
+          backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
+          child: imageUrl == null
+              ? Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                    image: const DecorationImage(
+                      image: NetworkImage(
+                        "https://img.freepik.com/free-vector/bill-analysis-concept-illustration_114360-22918.jpg",
+                      ),
+                      fit: BoxFit
+                          .cover, // Ensure the image covers the entire circle
+                    ),
+                  ),
+                )
+              : null,
         ),
-        if (isEditable && onTap != null)
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: _EditIconButton(onPressed: onTap!),
-          ),
+        // if (isEditable && onTap != null)
+        //   Positioned(
+        //     bottom: 0,
+        //     right: 0,
+        //     child: _EditIconButton(onPressed: onTap!),
+        //   ),
       ],
     );
   }
@@ -172,6 +176,7 @@ class _ProfileUserInfo extends StatelessWidget {
           children: [
             Text(
               username,
+              textAlign: TextAlign.center,
               style: usernameStyle ??
                   const TextStyle(
                     color: Colors.white,
@@ -192,6 +197,7 @@ class _ProfileUserInfo extends StatelessWidget {
         ),
         Text(
           email,
+          textAlign: TextAlign.center,
           style: emailStyle ??
               const TextStyle(
                 color: Colors.white70,

@@ -47,7 +47,8 @@ class PhotoSectionWidget extends StatelessWidget {
                       top: 0,
                       right: 0,
                       child: IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                        icon: const Icon(Icons.close,
+                            color: Colors.red, size: 20),
                         onPressed: () => onPhotoRemoved(index),
                       ),
                     ),

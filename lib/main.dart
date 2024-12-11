@@ -1,4 +1,3 @@
-import 'package:expense_tracker/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +11,7 @@ import 'features/auth/presentation/pages/forgot_password_page.dart';
 import 'features/auth/presentation/pages/signin_page.dart.dart';
 import 'features/gemini_chat_ai/services/chatprovider.dart';
 import 'features/intro/splash/splash_page.dart';
+import 'firebase_options.dart';
 import 'screens/privacy_policy_page.dart';
 import 'screens/terms_conditions_page.dart';
 

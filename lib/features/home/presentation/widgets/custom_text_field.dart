@@ -16,7 +16,7 @@ class CustomTextField extends StatelessWidget {
   final bool? enabled;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     this.validator,
@@ -28,7 +28,7 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     this.onSaved,
     this.enabled,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class CustomTextField extends StatelessWidget {
         // Focused border
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
         ),
 
         // Disabled border
@@ -65,13 +65,13 @@ class CustomTextField extends StatelessWidget {
         // Error border
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.errorColor),
+          borderSide: const BorderSide(color: AppTheme.errorColor),
         ),
 
         // Focused error border
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.errorColor, width: 2),
+          borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
         ),
       ),
       validator: validator,

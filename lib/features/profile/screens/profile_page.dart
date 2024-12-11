@@ -92,6 +92,7 @@ class _ProfilePageState extends State<ProfilePage>
         context: context,
         message: 'Failed to update profile image: $e',
       );
+      Navigator.of(context).pop();
     }
   }
 
@@ -132,9 +133,30 @@ class _ProfilePageState extends State<ProfilePage>
                 controller: usernameController,
                 decoration: InputDecoration(
                   hintText: "Enter new username",
+
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade500),
                   ),
+
+                  // Enabled border
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+
+                  // Focused border
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                        color: AppTheme.primaryColor, width: 2),
+                  ),
+                  // Disabled border
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+
                   prefixIcon:
                       const Icon(Icons.person, color: AppTheme.primaryColor),
                 ),

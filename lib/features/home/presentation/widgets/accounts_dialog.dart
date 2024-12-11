@@ -1,10 +1,10 @@
-import 'package:expense_tracker/features/home/presentation/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/provider/currency_provider.dart';
 import '../../../../models/account_model.dart';
+import 'custom_text_field.dart';
 
 class AccountsDialog extends StatefulWidget {
   final List<Account> accounts;
@@ -156,7 +156,7 @@ class _AccountsDialogState extends State<AccountsDialog> {
         backgroundColor: AppTheme.cardColor,
         title: Row(
           children: [
-            Icon(Icons.warning_rounded, color: AppTheme.errorColor),
+            const Icon(Icons.warning_rounded, color: AppTheme.errorColor),
             const SizedBox(width: 10),
             Text(
               'Delete Account',
@@ -309,13 +309,13 @@ class _AccountsDialogState extends State<AccountsDialog> {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [AppTheme.primaryColor, AppTheme.primaryDarkColor],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 10,
@@ -357,7 +357,7 @@ class _AccountsDialogState extends State<AccountsDialog> {
                               ),
                             ],
                           ),
-                          CircleAvatar(
+                          const CircleAvatar(
                             backgroundColor: Colors.white24,
                             child: Icon(
                               Icons.account_balance_wallet,
@@ -380,7 +380,7 @@ class _AccountsDialogState extends State<AccountsDialog> {
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceColor,
                       borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 6,
@@ -545,7 +545,7 @@ class _AccountsDialogState extends State<AccountsDialog> {
                         padding: const EdgeInsets.only(top: 16.0),
                         child: Text(
                           _errorMessage,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppTheme.errorColor,
                             fontSize: 14,
                           ),
