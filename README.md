@@ -11,6 +11,7 @@ Finlytics is an advanced, AI-powered Flutter application designed to transform p
   - Multiple visualization options for comprehensive financial analysis
   - Dynamic transaction filtering across various time periods
   - Detailed performance metrics and visual representations
+
  <img src="https://github.com/user-attachments/assets/7b67f7d3-226f-4525-a9c1-93ce3cdee2f2" width="300"/> <img src="https://github.com/user-attachments/assets/74618e9d-550a-4673-9d3f-bb5d4411fcf2" width="300"/>
 
 ### 2. Advanced Expense Tracking
