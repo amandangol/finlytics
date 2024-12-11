@@ -188,6 +188,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
         if (selectedAccount.balance < amount) {
           ErrorUtils.showSnackBar(
             context: context,
+            color: AppTheme.errorColor,
+            icon: Icons.error_outline,
             message:
                 'Insufficient Balance. Please add balance or select another account.',
             isError: true,
@@ -241,6 +243,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
       );
       ErrorUtils.showSnackBar(
         context: context,
+        color: AppTheme.successColor,
+        icon: Icons.check_circle_outline,
         message: 'Transaction added successfully!',
         isError: false,
         onVisible: () {
@@ -259,7 +263,8 @@ class _AddTransactionPageState extends State<AddTransactionPage>
       ErrorUtils.showSnackBar(
         context: context,
         message: 'Failed to submit transaction: ${e.toString()}',
-        isError: true,
+        color: AppTheme.errorColor,
+        icon: Icons.error_outline,
       );
     }
   }
@@ -396,19 +401,19 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                                     prefixIcon: Icons.account_balance_wallet),
                               ),
                               const SizedBox(height: 16),
-                              PhotoSectionWidget(
-                                selectedPhotos: _selectedPhotos,
-                                onCameraPressed: () =>
-                                    _pickImage(ImageSource.camera),
-                                onGalleryPressed: () =>
-                                    _pickImage(ImageSource.gallery),
-                                onPhotoRemoved: (index) {
-                                  setState(() {
-                                    _selectedPhotos.removeAt(index);
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: 16),
+                              // PhotoSectionWidget(
+                              //   selectedPhotos: _selectedPhotos,
+                              //   onCameraPressed: () =>
+                              //       _pickImage(ImageSource.camera),
+                              //   onGalleryPressed: () =>
+                              //       _pickImage(ImageSource.gallery),
+                              //   onPhotoRemoved: (index) {
+                              //     setState(() {
+                              //       _selectedPhotos.removeAt(index);
+                              //     });
+                              //   },
+                              // ),
+                              // const SizedBox(height: 16),
                               AnimatedBuilder(
                                 animation: _animationController,
                                 builder: (context, child) {

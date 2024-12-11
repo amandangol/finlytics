@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -24,6 +25,7 @@ class HomeContent extends StatefulWidget {
   final VoidCallback onShowAccountsDialog;
   final Function(String) onPeriodChanged;
   final VoidCallback onViewAllTransactions;
+  final bool? isLoading;
 
   const HomeContent({
     super.key,
@@ -37,6 +39,7 @@ class HomeContent extends StatefulWidget {
     required this.onShowAccountsDialog,
     required this.onPeriodChanged,
     required this.onViewAllTransactions,
+    this.isLoading,
   });
 
   @override
@@ -99,8 +102,7 @@ class _HomeContentState extends State<HomeContent>
                 background: Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(
-                          'https://bs-uploads.toptal.io/blackfish-uploads/components/blog_post_page/6428813/cover_image/optimized/Profitability-Optimization_BLOG-23df67f3151e1935dbe15b589f6c39d5.png'),
+                      image: AssetImage('assets/images/banner.png'),
                       alignment: Alignment.centerRight,
                       fit: BoxFit.cover,
                     ),
@@ -183,6 +185,32 @@ class _HomeContentState extends State<HomeContent>
                 letterSpacing: 1.2,
               ),
             ),
+            // New row to show initial balance
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  const Text(
+                    'Initial Balance: ',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    currencyProvider.formatCurrency(
+                        widget.selectedAccount != null
+                            ? widget.selectedAccount!.initialBalance
+                            : widget.userModel.totalInitialBalance),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 10),
             const Row(
               children: [
@@ -213,6 +241,34 @@ class _HomeContentState extends State<HomeContent>
   Widget _buildOverviewSection(Color cardColor, Color textColor) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    if (widget.isLoading == true) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: SpinKitThreeBounce(
+              color: AppTheme.primaryDarkColor,
+              size: 30.0,
+            ),
+          ),
+        ),
+      )
+          .animate()
+          .fadeIn(duration: 600.ms)
+          .slideY(begin: 0.1, end: 0, duration: 600.ms);
+    }
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -229,39 +285,46 @@ class _HomeContentState extends State<HomeContent>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Overview',
-                  style: AppTheme.textTheme.displayMedium?.copyWith(
-                    fontSize: 20,
-                    color: textColor,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Overview',
+                      style: AppTheme.textTheme.displayMedium?.copyWith(
+                        fontSize: 20,
+                        color: textColor,
+                      ),
+                    ),
+                    _buildPeriodDropdown(textColor),
+                  ],
                 ),
-                _buildPeriodDropdown(textColor),
-              ],
-            ),
+              ),
+              Divider(
+                height: 1,
+                color: isDarkMode ? Colors.white24 : Colors.grey.shade300,
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildIncomeExpenseBox(
+                        'Expense', widget.totalExpense, false),
+                    const SizedBox(width: 10),
+                    _buildIncomeExpenseBox('Income', widget.totalIncome, true),
+                  ],
+                ),
+              ),
+              _buildPieChart(),
+              _buildTransactionList(textColor),
+            ],
           ),
-          Divider(
-            height: 1,
-            color: isDarkMode ? Colors.white24 : Colors.grey.shade300,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildIncomeExpenseBox('Expense', widget.totalExpense, false),
-                const SizedBox(width: 10),
-                _buildIncomeExpenseBox('Income', widget.totalIncome, true),
-              ],
-            ),
-          ),
-          _buildPieChart(),
-          _buildTransactionList(textColor),
         ],
       ),
     )
@@ -542,6 +605,7 @@ class _HomeContentState extends State<HomeContent>
         else
           ListView.builder(
             shrinkWrap: true,
+            padding: const EdgeInsets.all(0),
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.recentTransactions.length > 5
                 ? 5

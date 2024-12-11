@@ -127,12 +127,11 @@ class UserService {
 
   Future removeProfileImage(String userId) async {
     try {
-      // Find and delete the latest profile image
       final ListResult result =
           await _storage.ref().child('profile_images').listAll();
 
       final matchingFiles =
-          result.items.where((ref) => ref.name.startsWith(userId));
+          result.items.where((ref) => ref.name.startsWith('profile_$userId'));
 
       if (matchingFiles.isNotEmpty) {
         await Future.wait(matchingFiles.map((ref) => ref.delete()));
@@ -146,9 +145,135 @@ class UserService {
       // Fetch the updated user document
       final userDoc = await _firestore.collection('users').doc(userId).get();
       return UserModel.fromDocument(userDoc);
+    } on FirebaseException catch (e) {
+      print('Firebase error removing profile image: ${e.code} - ${e.message}');
+      throw Exception('Failed to remove profile image: ${e.message}');
     } catch (e) {
-      print('Error removing profile image: $e');
+      print('Unexpected error removing profile image: $e');
       rethrow;
+    }
+  }
+
+  Future<bool> checkAccountHasTransactions(
+      String userId, String accountName) async {
+    try {
+      // Query transactions collection for transactions with the specific account
+      QuerySnapshot transactionsQuery = await _firestore
+          .collection('transactions')
+          .where('userId', isEqualTo: userId)
+          .where('account', isEqualTo: accountName)
+          .limit(1)
+          .get();
+
+      // Return true if there are any transactions associated with the account
+      return transactionsQuery.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking account transactions: $e');
+      throw Exception('Failed to check account transactions');
+    }
+  }
+
+  Future<void> deleteAccount(String userId, String accountName) async {
+    try {
+      // Start a batch operation for atomic writes
+      WriteBatch batch = _firestore.batch();
+
+      // Get the user document reference
+      DocumentReference userDoc = _firestore.collection('users').doc(userId);
+
+      // Get the current user data
+      DocumentSnapshot snapshot = await userDoc.get();
+      Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
+
+      // Get the current accounts list
+      List<dynamic> accounts = userData['accounts'] ?? [];
+
+      // Remove the account with the specified name
+      accounts.removeWhere((account) => account['name'] == accountName);
+
+      // Add user document update to the batch
+      batch.update(userDoc, {
+        'accounts': accounts,
+      });
+
+      // Query and delete all transactions for this account
+      QuerySnapshot transactionsQuery = await _firestore
+          .collection('transactions')
+          .where('userId', isEqualTo: userId)
+          .where('account', isEqualTo: accountName)
+          .get();
+
+      // Add transactions deletion to the batch
+      for (var doc in transactionsQuery.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // Commit the batch operation
+      await batch.commit();
+    } catch (e) {
+      print('Error deleting account and its transactions: $e');
+      throw Exception('Failed to delete account and its transactions');
+    }
+  }
+
+  Future<void> renameAccount(
+      String userId, String oldName, String newName) async {
+    try {
+      // Get the user document reference
+      DocumentReference userDoc = _firestore.collection('users').doc(userId);
+
+      // Get the current user data
+      DocumentSnapshot snapshot = await userDoc.get();
+      Map<String, dynamic> userData = snapshot.data() as Map<String, dynamic>;
+
+      // Get the current accounts list
+      List<dynamic> accounts = userData['accounts'] ?? [];
+
+      // Find the account to rename
+      for (int i = 0; i < accounts.length; i++) {
+        if (accounts[i]['name'] == oldName) {
+          // Update the account name
+          accounts[i]['name'] = newName;
+          break;
+        }
+      }
+
+      // Update the user document with the modified accounts list
+      await userDoc.update({
+        'accounts': accounts,
+      });
+
+      // Update all transactions with the old account name to the new account name
+      await _updateTransactionAccountName(userId, oldName, newName);
+    } catch (e) {
+      print('Error renaming account: $e');
+      throw Exception('Failed to rename account');
+    }
+  }
+
+// Helper method to update account name in transactions
+  Future<void> _updateTransactionAccountName(
+      String userId, String oldName, String newName) async {
+    try {
+      // Query transactions with the old account name
+      QuerySnapshot transactionsQuery = await _firestore
+          .collection('transactions')
+          .where('userId', isEqualTo: userId)
+          .where('account', isEqualTo: oldName)
+          .get();
+
+      // Batch update to modify account names in transactions
+      WriteBatch batch = _firestore.batch();
+
+      for (var doc in transactionsQuery.docs) {
+        batch.update(doc.reference, {'account': newName});
+      }
+
+      // Commit the batch update
+      await batch.commit();
+    } catch (e) {
+      print('Error updating transaction account names: $e');
+      throw Exception('Failed to update transaction account names');
     }
   }
 }

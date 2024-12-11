@@ -20,9 +20,13 @@ import '../transaction_details/transaction_details_page.dart';
 class TransactionListPage extends StatefulWidget {
   final String userId;
   final List<TransactionModel>? transactions;
+  final Function(String)? onTransactionDeleted; // Optional callback
 
   const TransactionListPage(
-      {super.key, required this.userId, this.transactions});
+      {super.key,
+      required this.userId,
+      this.transactions,
+      this.onTransactionDeleted});
 
   @override
   _TransactionListPageState createState() => _TransactionListPageState();
@@ -31,7 +35,7 @@ class TransactionListPage extends StatefulWidget {
 class _TransactionListPageState extends State<TransactionListPage> {
   List<TransactionModel> _transactions = [];
   List<TransactionModel> _filteredTransactions = [];
-  String _selectedPeriod = 'This Month';
+  String _selectedPeriod = 'Overall';
   bool _isLoading = true;
   DateTimeRange? _customDateRange;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -634,8 +638,16 @@ class _TransactionListPageState extends State<TransactionListPage> {
     );
   }
 
-  // ... remaining code for _selectCustomDateRange, _showDownloadDialog,
-  // _downloadTransactions, _downloadCSV, _downloadPDF (unchanged)
+  void _removeTransactionFromList(String transactionId) {
+    setState(() {
+      // Remove from _transactions list
+      _transactions
+          .removeWhere((transaction) => transaction.id == transactionId);
+
+      // Reapply filter to update _filteredTransactions
+      _filterTransactions(_selectedPeriod);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -796,7 +808,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
           ),
         );
         if (result == true) {
-          Navigator.of(context).pop(true);
+          _removeTransactionFromList(transaction.id);
         }
       },
     );

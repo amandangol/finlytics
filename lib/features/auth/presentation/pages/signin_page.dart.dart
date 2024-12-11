@@ -50,9 +50,11 @@ class _SigninPageState extends State<SigninPage>
   void _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ErrorUtils.showSnackBar(
-        context: context,
-        message: 'Please enter email and password',
-      );
+          context: context,
+          message: 'Please enter email and password',
+          color: AppTheme.errorColor,
+          icon: Icons.error_outline);
+
       return;
     }
 
@@ -66,9 +68,10 @@ class _SigninPageState extends State<SigninPage>
 
       if (userCredential.user != null && !userCredential.user!.emailVerified) {
         ErrorUtils.showSnackBar(
-          context: context,
-          message: 'Please verify your email',
-        );
+            context: context,
+            message: 'Please verify your email',
+            color: AppTheme.errorColor,
+            icon: Icons.error_outline);
         return;
       }
 
@@ -87,11 +90,17 @@ class _SigninPageState extends State<SigninPage>
   }
 
   void _handleLoginError(FirebaseAuthException e) {
+    print(
+        'Firebase Auth Error Code: ${e.code}'); // Add this line to log the exact error code
+    print(
+        'Firebase Auth Error Message: ${e.message}'); // This can provide more details
+
     String errorMessage = ErrorUtils.getAuthErrorMessage(e.code);
     ErrorUtils.showSnackBar(
-      context: context,
-      message: errorMessage,
-    );
+        context: context,
+        message: errorMessage,
+        color: AppTheme.errorColor,
+        icon: Icons.error_outline);
   }
 
   @override

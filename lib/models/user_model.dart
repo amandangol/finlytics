@@ -59,6 +59,10 @@ class UserModel {
     return accounts.fold(0.0, (sum, account) => sum + account.balance);
   }
 
+  double get totalInitialBalance {
+    return accounts.fold(0.0, (sum, account) => sum + account.initialBalance);
+  }
+
   // Method to update profile image URL
   UserModel copyWith({
     String? username,

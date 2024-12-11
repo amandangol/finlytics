@@ -1,4 +1,5 @@
 import 'package:expense_tracker/core/common/custom_appbar.dart';
+import 'package:expense_tracker/features/home/presentation/pages/home_page.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,14 +15,26 @@ import '../../../../../models/user_model.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 
-class TransactionDetailsPage extends StatelessWidget {
+class TransactionDetailsPage extends StatefulWidget {
   final TransactionModel transaction;
+  final Function(String)? onTransactionDeleted;
 
-  const TransactionDetailsPage({super.key, required this.transaction});
+  const TransactionDetailsPage({
+    super.key,
+    required this.transaction,
+    this.onTransactionDeleted,
+  });
+
+  @override
+  State<TransactionDetailsPage> createState() => _TransactionDetailsPageState();
+}
+
+class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
+  bool _isLoading = false;
 
   Future<List<PhotoModel>> _fetchTransactionPhotos(
       String userId, String transactionId) async {
-    if (!transaction.havePhotos) {
+    if (!widget.transaction.havePhotos) {
       return [];
     }
     QuerySnapshot photoQuery = await FirebaseFirestore.instance
@@ -62,49 +75,66 @@ class TransactionDetailsPage extends StatelessWidget {
     );
 
     if (confirmed) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(transaction.userId)
-          .get();
-      UserModel userModel = UserModel.fromDocument(userSnapshot);
-
-      double adjustedAmount = transaction.type == 'Income'
-          ? -transaction.amount
-          : transaction.amount;
-
-      // Update the account balance
-      await _updateAccountBalance(
-          userModel, transaction.account, adjustedAmount);
-
-      // Check if the transaction has associated photos
-      if (transaction.havePhotos) {
-        QuerySnapshot photoQuery = await FirebaseFirestore.instance
-            .collection('photos')
-            .where('userId', isEqualTo: transaction.userId)
-            .where('transactionId', isEqualTo: transaction.id)
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.transaction.userId)
             .get();
+        UserModel userModel = UserModel.fromDocument(userSnapshot);
 
-        for (QueryDocumentSnapshot doc in photoQuery.docs) {
-          String photoUrl = doc['imageUrl'];
+        double adjustedAmount = widget.transaction.type == 'Income'
+            ? -widget.transaction.amount
+            : widget.transaction.amount;
 
-          Reference photoRef = FirebaseStorage.instance.refFromURL(photoUrl);
-          await photoRef.delete();
+        // Update the account balance
+        await _updateAccountBalance(
+            userModel, widget.transaction.account, adjustedAmount);
 
-          // Delete the photo entry from Firestore
-          await FirebaseFirestore.instance
+        // Check if the transaction has associated photos
+        if (widget.transaction.havePhotos) {
+          QuerySnapshot photoQuery = await FirebaseFirestore.instance
               .collection('photos')
-              .doc(doc.id)
-              .delete();
+              .where('userId', isEqualTo: widget.transaction.userId)
+              .where('transactionId', isEqualTo: widget.transaction.id)
+              .get();
+
+          for (QueryDocumentSnapshot doc in photoQuery.docs) {
+            String photoUrl = doc['imageUrl'];
+
+            Reference photoRef = FirebaseStorage.instance.refFromURL(photoUrl);
+            await photoRef.delete();
+
+            // Delete the photo entry from Firestore
+            await FirebaseFirestore.instance
+                .collection('photos')
+                .doc(doc.id)
+                .delete();
+          }
         }
+
+        // Delete the transaction from Firestore
+        await FirebaseFirestore.instance
+            .collection('transactions')
+            .doc(widget.transaction.id)
+            .delete();
+        if (widget.onTransactionDeleted != null) {
+          widget.onTransactionDeleted!(widget.transaction.id);
+        }
+
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => const HomePage()));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete transaction: $e')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
-
-      // Delete the transaction from Firestore
-      await FirebaseFirestore.instance
-          .collection('transactions')
-          .doc(transaction.id)
-          .delete();
-
-      Navigator.of(context).pop(true);
     }
   }
 
@@ -125,14 +155,15 @@ class TransactionDetailsPage extends StatelessWidget {
 
   Future<void> _editTransaction(BuildContext context) async {
     final TextEditingController detailsController =
-        TextEditingController(text: transaction.details);
+        TextEditingController(text: widget.transaction.details);
     final TextEditingController dateController = TextEditingController(
-        text: DateFormat('dd/MM/yyyy').format(transaction.date.toDate()));
+        text:
+            DateFormat('dd/MM/yyyy').format(widget.transaction.date.toDate()));
 
     // Use the expanded category list from CategoryHelper
     final List<String> categories = CategoryHelper.getAllCategories();
 
-    String selectedCategory = transaction.category;
+    String selectedCategory = widget.transaction.category;
 
     bool? edited = await showDialog<bool>(
       context: context,
@@ -229,7 +260,7 @@ class TransactionDetailsPage extends StatelessWidget {
                       onTap: () async {
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: transaction.date.toDate(),
+                          initialDate: widget.transaction.date.toDate(),
                           firstDate: DateTime(2000),
                           lastDate: DateTime(2101),
                           builder: (context, child) {
@@ -266,24 +297,50 @@ class TransactionDetailsPage extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    String newDetails = detailsController.text;
-                    DateTime newDate =
-                        DateFormat('dd/MM/yyyy').parse(dateController.text);
-
-                    await FirebaseFirestore.instance
-                        .collection('transactions')
-                        .doc(transaction.id)
-                        .update({
-                      'category': selectedCategory,
-                      'details': newDetails,
-                      'date': Timestamp.fromDate(newDate),
+                    setState(() {
+                      _isLoading = true;
                     });
+                    try {
+                      String newDetails = detailsController.text;
+                      DateTime newDate =
+                          DateFormat('dd/MM/yyyy').parse(dateController.text);
 
-                    // Close the dialog and return true
-                    Navigator.of(context).pop(true);
+                      await FirebaseFirestore.instance
+                          .collection('transactions')
+                          .doc(widget.transaction.id)
+                          .update({
+                        'category': selectedCategory,
+                        'details': newDetails,
+                        'date': Timestamp.fromDate(newDate),
+                      });
+                      widget.transaction.category = selectedCategory;
+                      widget.transaction.details = newDetails;
+                      widget.transaction.date = Timestamp.fromDate(newDate);
+
+                      // Close the dialog and return true
+                      Navigator.of(context).pop(true);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Failed to edit transaction: $e')),
+                      );
+                    } finally {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
                   },
                   style: AppTheme.elevatedButtonStyle,
-                  child: const Text('Save Changes'),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ))
+                      : const Text('Save Changes'),
                 ),
               ],
             );
@@ -292,16 +349,13 @@ class TransactionDetailsPage extends StatelessWidget {
       },
     );
 
-    // If the transaction was edited, update the local transaction object
-    if (edited == true) {
-      // Update the local transaction object to reflect the changes
-      transaction.category = selectedCategory;
-      transaction.details = detailsController.text;
-      transaction.date = Timestamp.fromDate(
-          DateFormat('dd/MM/yyyy').parse(dateController.text));
-
-      // Trigger a rebuild of the current page to show updated information
-      (context as Element).markNeedsBuild();
+    // Trigger rebuild if edited
+    if (edited != null && edited == true && mounted) {
+      // Check if the parent widget has the onTransactionEdited callback
+      if (widget.onTransactionDeleted is Function) {
+        widget.onTransactionDeleted!(widget.transaction.id);
+      }
+      setState(() {});
     }
   }
 
@@ -367,7 +421,7 @@ class TransactionDetailsPage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: transaction.type == 'Expense'
+          colors: widget.transaction.type == 'Expense'
               ? [AppTheme.errorColor, AppTheme.errorColor.withOpacity(0.7)]
               : [AppTheme.successColor, AppTheme.successColor.withOpacity(0.7)],
           begin: Alignment.topLeft,
@@ -393,7 +447,7 @@ class TransactionDetailsPage extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(12),
               child: Icon(
-                CategoryHelper.getCategoryIcon(transaction.category),
+                CategoryHelper.getCategoryIcon(widget.transaction.category),
                 color: Colors.white,
                 size: 40,
               ),
@@ -404,14 +458,14 @@ class TransactionDetailsPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transaction.category,
+                    widget.transaction.category,
                     style: AppTheme.textTheme.displayMedium?.copyWith(
                       color: Colors.white,
                       fontSize: 18,
                     ),
                   ),
                   Text(
-                    transaction.type,
+                    widget.transaction.type,
                     style: AppTheme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white70,
                     ),
@@ -420,7 +474,7 @@ class TransactionDetailsPage extends StatelessWidget {
               ),
             ),
             Text(
-              currencyProvider.formatCurrency(transaction.amount),
+              currencyProvider.formatCurrency(widget.transaction.amount),
               style: AppTheme.textTheme.displayMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -445,14 +499,15 @@ class TransactionDetailsPage extends StatelessWidget {
           children: [
             _buildDetailRow(
               "Date",
-              DateFormat('dd MMM yyyy').format(transaction.date.toDate()),
+              DateFormat('dd MMM yyyy')
+                  .format(widget.transaction.date.toDate()),
             ),
             const Divider(height: 24, thickness: 0.5),
-            _buildDetailRow("Account", transaction.account),
+            _buildDetailRow("Account", widget.transaction.account),
             const Divider(height: 24, thickness: 0.5),
             _buildDetailRow(
               "Details",
-              transaction.details ?? "No additional details",
+              widget.transaction.details ?? "No additional details",
             ),
           ],
         ),
@@ -498,7 +553,8 @@ class TransactionDetailsPage extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         FutureBuilder<List<PhotoModel>>(
-          future: _fetchTransactionPhotos(transaction.userId, transaction.id),
+          future: _fetchTransactionPhotos(
+              widget.transaction.userId, widget.transaction.id),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(

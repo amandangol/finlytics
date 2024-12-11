@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -22,19 +23,45 @@ class ProfilePage extends StatefulWidget {
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with SingleTickerProviderStateMixin {
   late UserModel _currentUser;
   final ImagePicker _picker = ImagePicker();
   final UserAuthenticationService _authService = UserAuthenticationService();
   final UserDataService _userDataService = UserDataService();
 
   String? _profileImageUrl;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _profileImageUrl = widget.user.profileImageUrl;
     _currentUser = widget.user;
+
+    // Initialize animation controller for fade animation
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800), // Slightly longer duration
+      vsync: this,
+    );
+
+    // Create a fade animation with more pronounced curve
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // More dramatic easing
+      ),
+    );
+
+    // Start the animation
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -70,9 +97,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _editUsername() {
-    final TextEditingController usernameController = TextEditingController(
-      text: widget.user.username,
-    );
+    final TextEditingController usernameController =
+        TextEditingController(text: _currentUser.username);
 
     showModalBottomSheet(
       context: context,
@@ -141,8 +167,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               newUsername,
                             );
 
-                            // Update local state
                             setState(() {
+                              _currentUser.username = newUsername;
                               widget.user.username = newUsername;
                             });
 
@@ -325,70 +351,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _confirmDeleteData(BuildContext context) {
-    TextEditingController emailController = TextEditingController();
-    String? errorMessage;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return _buildCustomDialog(
-              context: context,
-              title: "Reset Data",
-              message: "Are you sure you want to reset all your data?",
-              icon: Icons.warning_rounded,
-              iconColor: DialogTheme.warningColor,
-              additionalMessage:
-                  "This will delete all your transactions and photos. This action cannot be undone.",
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    if (emailController.text.isEmpty) {
-                      setState(() {
-                        errorMessage = "Email cannot be empty.";
-                      });
-                    } else if (emailController.text != widget.user.email) {
-                      setState(() {
-                        errorMessage = "Incorrect email. Please try again.";
-                      });
-                    } else {
-                      // Existing reset logic
-                      await _userDataService.resetUserAccounts(widget.user.id);
-                      Navigator.of(context).pop();
-                      // Show restart dialog
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: DialogTheme.warningColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text("Reset Data"),
-                ),
-              ],
-              // Custom content with email verification
-              customContent: TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: "Confirm your email",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  errorText: errorMessage,
-                  prefixIcon: const Icon(Icons.email, color: DialogTheme.infoColor),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   void _confirmDeleteAccount(BuildContext context) {
     TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
@@ -431,15 +393,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         passwordErrorMessage = "Password cannot be empty.";
                       });
                     } else {
-                      // Use the new reauthenticate method from UserAuthenticationService
-                      bool isReauthenticated =
-                          await _authService.reauthenticateUser(
-                        emailController.text,
-                        passwordController.text,
-                      );
+                      try {
+                        bool isReauthenticated =
+                            await _authService.reauthenticateUser(
+                          emailController.text,
+                          passwordController.text,
+                        );
 
-                      if (isReauthenticated) {
-                        try {
+                        if (isReauthenticated) {
                           // Delete user data first
                           await _userDataService.deleteUserData(widget.user.id);
 
@@ -448,19 +409,47 @@ class _ProfilePageState extends State<ProfilePage> {
 
                           // Sign out and navigate to auth page
                           _signOut(context);
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Error deleting account: $e"),
-                              backgroundColor: Colors.red,
+
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.check_circle_outline,
+                                    color: Colors.white),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    "All data has been reset successfully",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
+                            backgroundColor: Colors.black,
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            margin: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                          ));
+                        } else {
+                          setState(() {
+                            passwordErrorMessage =
+                                "Incorrect password. Please try again.";
+                          });
                         }
-                      } else {
-                        setState(() {
-                          passwordErrorMessage =
-                              "Incorrect password. Please try again.";
-                        });
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Error deleting account: $e"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     }
                   },
@@ -474,7 +463,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: const Text("Delete Account"),
                 ),
               ],
-              // Custom content with email and password verification
               customContent: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -516,60 +504,72 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromARGB(255, 230, 236, 241), // Soft light blue
-              Color.fromARGB(255, 220, 239, 225), // Soft light green
-            ],
-          ),
-        ),
-        child: CustomScrollView(
-          slivers: [
-            ProfileHeader(
-              user: _currentUser,
-              onImageTap: _pickAndUploadImage,
-              onUsernameTap: () => _editUsername(),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  AccountSettingsSection(
-                    onPrivacyTap: () =>
-                        Navigator.of(context).pushNamed('/privacy-policy'),
-                    onTermsofServicesTap: () =>
-                        Navigator.of(context).pushNamed('/terms-of-services'),
-                    onSignOutTap: () => _confirmSignOut(context),
-                    onAboutTap: () => _showAboutBottomSheet(context),
-                    onCurrencyExchangeTap: () =>
-                        _showCurrencyBottomSheet(context),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 15),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppTheme.accentColor,
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: DangerZoneSection(
-                        onDeleteDataTap: () => _confirmDeleteData(context),
-                        onDeleteAccountTap: () =>
-                            _confirmDeleteAccount(context),
-                      ),
-                    ),
-                  ),
-                ]),
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.5, end: 1.0).animate(CurvedAnimation(
+              parent: _animationController, curve: Curves.easeOut)),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color.fromARGB(255, 230, 236, 241),
+                  Color.fromARGB(255, 220, 239, 225),
+                ],
               ),
             ),
-          ],
+            child: CustomScrollView(
+              slivers: [
+                // Profile Header with only fade effect
+                ProfileHeader(
+                  user: _currentUser,
+                  onImageTap: _pickAndUploadImage,
+                  onUsernameTap: () => _editUsername(),
+                ),
+
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Account Settings Section
+                      AccountSettingsSection(
+                        onPrivacyTap: () =>
+                            Navigator.of(context).pushNamed('/privacy-policy'),
+                        onTermsofServicesTap: () => Navigator.of(context)
+                            .pushNamed('/terms-of-services'),
+                        onSignOutTap: () => _confirmSignOut(context),
+                        onAboutTap: () => _showAboutBottomSheet(context),
+                        onCurrencyExchangeTap: () =>
+                            _showCurrencyBottomSheet(context),
+                      ),
+
+                      // Danger Zone Section
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 15),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppTheme.accentColor,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: DangerZoneSection(
+                            onDeleteAccountTap: () =>
+                                _confirmDeleteAccount(context),
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

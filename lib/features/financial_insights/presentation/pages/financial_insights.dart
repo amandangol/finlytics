@@ -32,8 +32,10 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
   @override
   void initState() {
     super.initState();
-    _transactions = widget.allTransactions;
-    _filteredTransactions = _transactions;
+    if (widget.allTransactions.isNotEmpty) {
+      _transactions = widget.allTransactions;
+      _filteredTransactions = _transactions;
+    }
 
     // Initialize animation controller
     _animationController = AnimationController(
@@ -155,20 +157,78 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
             end: Alignment.bottomRight,
             colors: [
               Color.fromARGB(255, 230, 236, 241),
-              Color.fromARGB(255, 220, 239, 225), // Soft light green
+              Color.fromARGB(255, 220, 239, 225),
             ],
           ),
         ),
-        child: Column(
-          children: [
-            _buildFilterSection(),
-            Expanded(
-              child: FadeTransition(
-                opacity: _animationController,
-                child: _buildChartsContent(),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 6,
+                      offset: const Offset(0, 2), // Shadow position
+                    ),
+                  ],
+                ),
+                child: ExpansionTile(
+                  enabled: true,
+                  title: const Text(
+                    'View your financial summary',
+                    style: TextStyle(
+                      fontSize: 16,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.primaryDarkColor,
+                      decoration: TextDecoration.underline,
+                      decorationStyle: TextDecorationStyle.solid,
+                    ),
+                  ),
+                  leading: const Icon(
+                    Icons.attach_money,
+                    color: Colors.green,
+                  ),
+                  trailing: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.grey.shade600,
+                  ),
+                  tilePadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  childrenPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  backgroundColor: Colors.grey.shade100,
+                  collapsedBackgroundColor:
+                      Colors.transparent, // Set to transparent
+                  collapsedIconColor: Colors.grey.shade600,
+                  children: [
+                    _buildSummaryMetricsCard(),
+                  ],
+                ),
               ),
-            ),
-          ],
+              _buildFilterSection(),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height),
+                child: FadeTransition(
+                  opacity: _animationController,
+                  child: _buildChartsContent(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -271,6 +331,191 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _calculateSummaryMetrics() {
+    double totalIncome = 0.0;
+    double totalExpense = 0.0;
+    double highestIncome = 0.0;
+    double highestExpense = 0.0;
+    String highestIncomeCategory = '';
+    String highestExpenseCategory = '';
+
+    // Track category-wise totals
+    Map<String, double> incomeCategories = {};
+    Map<String, double> expenseCategories = {};
+
+    for (var transaction in _filteredTransactions) {
+      if (transaction.type == 'Income') {
+        totalIncome += transaction.amount;
+        incomeCategories.update(
+            transaction.category, (value) => value + transaction.amount,
+            ifAbsent: () => transaction.amount);
+
+        if (transaction.amount > highestIncome) {
+          highestIncome = transaction.amount;
+          highestIncomeCategory = transaction.category;
+        }
+      } else {
+        totalExpense += transaction.amount;
+        expenseCategories.update(
+            transaction.category, (value) => value + transaction.amount,
+            ifAbsent: () => transaction.amount);
+
+        if (transaction.amount > highestExpense) {
+          highestExpense = transaction.amount;
+          highestExpenseCategory = transaction.category;
+        }
+      }
+    }
+
+    // Calculate net balance and savings rate
+    double netBalance = totalIncome - totalExpense;
+    double savingsRate = totalIncome > 0
+        ? ((totalIncome - totalExpense) / totalIncome * 100).roundToDouble()
+        : 0.0;
+
+    return {
+      'totalIncome': totalIncome,
+      'totalExpense': totalExpense,
+      'netBalance': netBalance,
+      'savingsRate': savingsRate,
+      'highestIncome': highestIncome,
+      'highestExpense': highestExpense,
+      'highestIncomeCategory': highestIncomeCategory,
+      'highestExpenseCategory': highestExpenseCategory,
+      'incomeCategories': incomeCategories,
+      'expenseCategories': expenseCategories,
+    };
+  }
+
+  // New method to build summary metrics widget
+  Widget _buildSummaryMetricsCard() {
+    final metrics = _calculateSummaryMetrics();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Financial Summary',
+              style: TextStyle(
+                fontSize: 16,
+                letterSpacing: 1,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.primaryDarkColor,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                // Comparative View Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildMetricColumn(
+                        'Total Income',
+                        NumberFormat.currency(symbol: '\$')
+                            .format(metrics['totalIncome']),
+                        Colors.green.shade300),
+                    _buildMetricColumn(
+                        'Total Expense',
+                        NumberFormat.currency(symbol: '\$')
+                            .format(metrics['totalExpense']),
+                        Colors.red.shade300),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Net Balance and Savings Rate
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildMetricColumn(
+                        'Net Balance',
+                        NumberFormat.currency(symbol: '\$')
+                            .format(metrics['netBalance']),
+                        metrics['netBalance'] >= 0
+                            ? Colors.blue.shade300
+                            : Colors.orange.shade300),
+                    _buildMetricColumn(
+                        'Savings Rate',
+                        '${metrics['savingsRate'].toStringAsFixed(1)}%',
+                        Colors.purple.shade300),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Highest Categories
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildMetricColumn(
+                        'Highest Income',
+                        '${metrics['highestIncomeCategory']}\n\$${NumberFormat.compact().format(metrics['highestIncome'])}',
+                        Colors.green.shade200),
+                    _buildMetricColumn(
+                        'Highest Expense',
+                        '${metrics['highestExpenseCategory']}\n\$${NumberFormat.compact().format(metrics['highestExpense'])}',
+                        Colors.red.shade200),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to build metric columns
+  Widget _buildMetricColumn(String title, String value, Color color) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.4,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              color: color.darken(0.3),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -666,5 +911,16 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
         ),
       ),
     );
+  }
+}
+
+extension ColorExtension on Color {
+  Color darken([double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+
+    final hsl = HSLColor.fromColor(this);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+
+    return hslDark.toColor();
   }
 }

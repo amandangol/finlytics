@@ -19,10 +19,10 @@ class ThemeProvider with ChangeNotifier {
         _themeMode = ThemeMode.light;
         break;
       case 'dark':
-        _themeMode = ThemeMode.dark;
+        _themeMode = ThemeMode.light;
         break;
       default:
-        _themeMode = ThemeMode.system;
+        _themeMode = ThemeMode.light;
     }
     notifyListeners();
   }

@@ -8,6 +8,7 @@ class ErrorUtils {
     Duration duration = const Duration(seconds: 3),
     VoidCallback? onVisible,
     Color? color,
+    IconData? icon,
   }) {
     // Remove any existing SnackBars
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
@@ -16,8 +17,7 @@ class ErrorUtils {
       SnackBar(
         content: Row(
           children: [
-            Icon(isError ? Icons.error_outline : Icons.check_circle_outline,
-                color: Colors.white),
+            Icon(icon!),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -30,7 +30,7 @@ class ErrorUtils {
             ),
           ],
         ),
-        backgroundColor: isError ? Colors.redAccent : Colors.green,
+        backgroundColor: color,
         duration: duration,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -56,8 +56,18 @@ class ErrorUtils {
         return 'Email already in use';
       case 'weak-password':
         return 'Password is too weak';
+      case 'network-request-failed':
+        return 'Network error. Please check your internet connection';
+      case 'too-many-requests':
+        return 'Too many login attempts. Please try again later';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'operation-not-allowed':
+        return 'Sign-in method not allowed';
+      case 'invalid-credential':
+        return 'Invalid login credentials. Please check and try again';
       default:
-        return 'An unexpected error occurred';
+        return 'An unexpected error occurred. Please try again.';
     }
   }
 }

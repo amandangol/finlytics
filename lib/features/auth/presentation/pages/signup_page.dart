@@ -58,25 +58,28 @@ class _SignupPageState extends State<SignupPage> {
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
       ErrorUtils.showSnackBar(
-        context: context,
-        message: 'Please fill all fields',
-      );
+          context: context,
+          message: 'Please fill all fields',
+          color: AppTheme.errorColor,
+          icon: Icons.error_outline);
       return false;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
       ErrorUtils.showSnackBar(
-        context: context,
-        message: 'Passwords do not match',
-      );
+          context: context,
+          message: 'Passwords do not match',
+          color: AppTheme.errorColor,
+          icon: Icons.error_outline);
       return false;
     }
 
     if (!_agreeToTerms) {
       ErrorUtils.showSnackBar(
-        context: context,
-        message: 'Please agree to terms and conditions',
-      );
+          context: context,
+          message: 'Please agree to terms and conditions',
+          color: AppTheme.errorColor,
+          icon: Icons.error_outline);
       return false;
     }
 
@@ -86,15 +89,18 @@ class _SignupPageState extends State<SignupPage> {
   void _handleSignupError(FirebaseAuthException e) {
     String errorMessage = ErrorUtils.getAuthErrorMessage(e.code);
     ErrorUtils.showSnackBar(
-      context: context,
-      message: errorMessage,
-    );
+        context: context,
+        message: errorMessage,
+        color: AppTheme.errorColor,
+        icon: Icons.error_outline);
   }
 
   void _showVerificationMessage() {
     // Show verification message using SnackBar
     ErrorUtils.showSnackBar(
       context: context,
+      color: AppTheme.successColor,
+      icon: Icons.check_circle_outline,
       message: 'Verification link sent to your email',
       onVisible: () {
         // Navigate to login page after a short delay

@@ -28,9 +28,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   void _resetPassword() async {
     if (_emailController.text.isEmpty) {
       ErrorUtils.showSnackBar(
-        context: context,
-        message: 'Email cannot be empty',
-      );
+          context: context,
+          message: 'Email cannot be empty',
+          color: AppTheme.errorColor,
+          icon: Icons.error_outline);
       return;
     }
 
@@ -40,9 +41,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
 
       ErrorUtils.showSnackBar(
-        context: context,
-        message: 'Password reset link sent to your email',
-      );
+          context: context,
+          message: 'Password reset link sent to your email',
+          color: AppTheme.successColor,
+          icon: Icons.check_circle_outline);
 
       Navigator.pushReplacement(
         context,
@@ -50,9 +52,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       );
     } on FirebaseAuthException catch (e) {
       ErrorUtils.showSnackBar(
-        context: context,
-        message: ErrorUtils.getAuthErrorMessage(e.code),
-      );
+          context: context,
+          message: ErrorUtils.getAuthErrorMessage(e.code),
+          color: AppTheme.errorColor,
+          icon: Icons.error_outline);
     } finally {
       setState(() => _isLoading = false);
     }

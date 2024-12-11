@@ -41,7 +41,6 @@ class MyApp extends StatelessWidget {
           title: 'Finlytics',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
           themeMode: theme.themeMode,
           home: const SplashScreen(),
           routes: {

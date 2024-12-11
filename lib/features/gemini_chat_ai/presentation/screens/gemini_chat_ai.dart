@@ -78,8 +78,11 @@ class _GeminiChatAiPageState extends State<GeminiChatAiPage>
     // Start the animation
     _animationController.forward();
 
-    Provider.of<ChatState>(context, listen: false)
-        .checkAndClearMessagesForNewUser();
+    // Use WidgetsBinding to defer the state modification
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ChatState>(context, listen: false)
+          .checkAndClearMessagesForNewUser();
+    });
   }
 
   @override

@@ -8,7 +8,6 @@ class UserDataService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  // Delete all user-related data
   Future<void> deleteUserData(String userId) async {
     try {
       // Delete transactions
@@ -33,18 +32,49 @@ class UserDataService {
       for (var doc in photosQuery.docs) {
         final photoUrl = doc['imageUrl'] as String?;
         if (photoUrl != null) {
-          await _storage.refFromURL(photoUrl).delete();
+          try {
+            await _storage.refFromURL(photoUrl).delete();
+          } catch (e) {
+            print('Error deleting photo: $e');
+          }
         }
         batch.delete(doc.reference);
       }
 
+      // Reset user's accounts and transactions
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .update({'accounts': [], 'totalBalance': 0, 'hasResetData': true});
+
       // Commit batch operations
       await batch.commit();
-
-      // Delete user document
-      await _firestore.collection('users').doc(userId).delete();
     } catch (e) {
       throw Exception('Error deleting user data: $e');
+    }
+  }
+
+  Future<void> resetUserAccounts(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'accounts': [], // Clear all accounts
+        'totalBalance': 0, // Reset total balance
+        'hasResetData': true // Add a flag to track reset
+      });
+
+      // Delete all transactions for this user
+      final transactionsQuery = await _firestore
+          .collection('transactions')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in transactionsQuery.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Error resetting user accounts: $e');
     }
   }
 
@@ -83,37 +113,6 @@ class UserDataService {
       });
     } catch (e) {
       throw Exception('Error updating username: $e');
-    }
-  }
-
-  // Reset user accounts and balance
-  Future<void> resetUserAccounts(String userId) async {
-    try {
-      final userRef = _firestore.collection('users').doc(userId);
-
-      // Get current user document
-      final userDoc = await userRef.get();
-      if (!userDoc.exists) {
-        throw Exception("User document does not exist.");
-      }
-
-      UserModel userModel = UserModel.fromDocument(userDoc);
-
-      // Delete all accounts except the main one and set the balance of the main account to 0
-      if (userModel.accounts.isNotEmpty) {
-        userModel.accounts.removeWhere((account) => account.name != 'Main');
-        if (userModel.accounts.isNotEmpty) {
-          userModel.accounts[0].balance = 0;
-        }
-      }
-
-      // Update user document
-      await userRef.update({
-        'accounts':
-            userModel.accounts.map((account) => account.toMap()).toList(),
-      });
-    } catch (e) {
-      throw Exception('Error resetting user accounts: $e');
     }
   }
 }
