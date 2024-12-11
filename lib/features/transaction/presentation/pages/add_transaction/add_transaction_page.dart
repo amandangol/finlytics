@@ -401,19 +401,19 @@ class _AddTransactionPageState extends State<AddTransactionPage>
                                     prefixIcon: Icons.account_balance_wallet),
                               ),
                               const SizedBox(height: 16),
-                              // PhotoSectionWidget(
-                              //   selectedPhotos: _selectedPhotos,
-                              //   onCameraPressed: () =>
-                              //       _pickImage(ImageSource.camera),
-                              //   onGalleryPressed: () =>
-                              //       _pickImage(ImageSource.gallery),
-                              //   onPhotoRemoved: (index) {
-                              //     setState(() {
-                              //       _selectedPhotos.removeAt(index);
-                              //     });
-                              //   },
-                              // ),
-                              // const SizedBox(height: 16),
+                              PhotoSectionWidget(
+                                selectedPhotos: _selectedPhotos,
+                                onCameraPressed: () =>
+                                    _pickImage(ImageSource.camera),
+                                onGalleryPressed: () =>
+                                    _pickImage(ImageSource.gallery),
+                                onPhotoRemoved: (index) {
+                                  setState(() {
+                                    _selectedPhotos.removeAt(index);
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
                               AnimatedBuilder(
                                 animation: _animationController,
                                 builder: (context, child) {

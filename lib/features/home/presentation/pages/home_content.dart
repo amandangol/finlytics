@@ -55,10 +55,6 @@ class _HomeContentState extends State<HomeContent>
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode0 = themeProvider.themeMode == ThemeMode.dark;
 
-    final backgroundColor = isDarkMode0
-        ? AppTheme.darkTheme.scaffoldBackgroundColor
-        : AppTheme.lightTheme.scaffoldBackgroundColor;
-
     final cardColor = isDarkMode0
         ? AppTheme.darkTheme.cardColor
         : AppTheme.lightTheme.cardColor;

@@ -44,6 +44,11 @@ class _GeminiChatAiPageState extends State<GeminiChatAiPage>
       "description": "Compare your earnings and expenditures"
     },
     {
+      "query": "Calculate my financial metrics",
+      "description":
+          "Receive your financial healthscore, saving rate and many more"
+    },
+    {
       "query": "Provide savings tips",
       "description": "Receive personalized financial advice"
     },

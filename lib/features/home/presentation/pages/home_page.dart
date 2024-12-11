@@ -664,6 +664,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           return FinancialInsightsPage(
             allTransactions: allTransactions.isNotEmpty ? allTransactions : [],
             userId: user!.uid,
+            userModel: userModel!,
           );
         }
       },

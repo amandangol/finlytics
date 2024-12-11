@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -30,14 +29,12 @@ class _ProfilePageState extends State<ProfilePage>
   final UserAuthenticationService _authService = UserAuthenticationService();
   final UserDataService _userDataService = UserDataService();
 
-  String? _profileImageUrl;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _profileImageUrl = widget.user.profileImageUrl;
     _currentUser = widget.user;
 
     // Initialize animation controller for fade animation
@@ -90,6 +87,8 @@ class _ProfilePageState extends State<ProfilePage>
       }
     } catch (e) {
       ErrorUtils.showSnackBar(
+        color: AppTheme.errorColor,
+        icon: Icons.error_outline,
         context: context,
         message: 'Failed to update profile image: $e',
       );

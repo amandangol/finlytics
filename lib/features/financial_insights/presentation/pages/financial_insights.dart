@@ -2,17 +2,24 @@ import 'dart:async';
 import 'dart:math';
 import 'package:expense_tracker/core/common/custom_appbar.dart';
 import 'package:expense_tracker/core/constants/app_colors.dart';
+import 'package:expense_tracker/core/provider/currency_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../../models/transaction_model.dart';
+import '../../../../models/user_model.dart';
 
 class FinancialInsightsPage extends StatefulWidget {
   final List<TransactionModel> allTransactions;
   final String userId;
-
-  const FinancialInsightsPage(
-      {super.key, required this.allTransactions, required this.userId});
+  final UserModel userModel;
+  const FinancialInsightsPage({
+    super.key,
+    required this.allTransactions,
+    required this.userId,
+    required this.userModel,
+  });
 
   @override
   _FinancialInsightsPageState createState() => _FinancialInsightsPageState();
@@ -28,6 +35,7 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
 
   // Animation controller for smooth transitions
   late AnimationController _animationController;
+  late Animation<double> _animation;
 
   @override
   void initState() {
@@ -37,11 +45,16 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
       _filteredTransactions = _transactions;
     }
 
-    // Initialize animation controller
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
     _animationController.forward();
   }
 
@@ -127,7 +140,7 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
       _selectedChartType =
           _selectedChartType == 'Expense' ? 'Income' : 'Expense';
 
-      // Trigger re-animation
+      // Reset and forward the animation more gently
       _animationController.reset();
       _animationController.forward();
     });
@@ -161,74 +174,17 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
             ],
           ),
         ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 6,
-                      offset: const Offset(0, 2), // Shadow position
-                    ),
-                  ],
-                ),
-                child: ExpansionTile(
-                  enabled: true,
-                  title: const Text(
-                    'View your financial summary',
-                    style: TextStyle(
-                      fontSize: 16,
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.primaryDarkColor,
-                      decoration: TextDecoration.underline,
-                      decorationStyle: TextDecorationStyle.solid,
-                    ),
-                  ),
-                  leading: const Icon(
-                    Icons.attach_money,
-                    color: Colors.green,
-                  ),
-                  trailing: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.grey.shade600,
-                  ),
-                  tilePadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  childrenPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  backgroundColor: Colors.grey.shade100,
-                  collapsedBackgroundColor:
-                      Colors.transparent, // Set to transparent
-                  collapsedIconColor: Colors.grey.shade600,
-                  children: [
-                    _buildSummaryMetricsCard(),
-                  ],
-                ),
-              ),
-              _buildFilterSection(),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height),
-                child: FadeTransition(
-                  opacity: _animationController,
-                  child: _buildChartsContent(),
-                ),
-              ),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCompactSummaryCard(),
+            // Filter Section
+            _buildFilterSection(),
+            // Expandable Charts Content
+            Expanded(
+              child: _buildChartsContent(),
+            ),
+          ],
         ),
       ),
     );
@@ -373,10 +329,17 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
       }
     }
 
-    // Calculate net balance and savings rate
-    double netBalance = totalIncome - totalExpense;
+    // Total balance from user's accounts
+    double totalBalance = widget.userModel.totalBalance;
+
+    // Calculate net balance considering total balance
+    // This ensures net balance reflects overall financial health
+    double netBalance = totalBalance + totalIncome - totalExpense;
+    double netSavings = totalIncome - totalExpense;
+
+    // Calculate savings rate based on income
     double savingsRate = totalIncome > 0
-        ? ((totalIncome - totalExpense) / totalIncome * 100).roundToDouble()
+        ? ((netSavings) / totalIncome * 100).roundToDouble()
         : 0.0;
 
     return {
@@ -390,132 +353,207 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
       'highestExpenseCategory': highestExpenseCategory,
       'incomeCategories': incomeCategories,
       'expenseCategories': expenseCategories,
+      'totalBalance': totalBalance,
     };
   }
 
-  // New method to build summary metrics widget
-  Widget _buildSummaryMetricsCard() {
+  Widget _buildCompactSummaryCard() {
     final metrics = _calculateSummaryMetrics();
+    final currencyProvider = Provider.of<CurrencyProvider>(context);
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Financial Summary',
-              style: TextStyle(
-                fontSize: 16,
-                letterSpacing: 1,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.primaryDarkColor,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Comparative View Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMetricColumn(
-                        'Total Income',
-                        NumberFormat.currency(symbol: '\$')
-                            .format(metrics['totalIncome']),
-                        Colors.green.shade300),
-                    _buildMetricColumn(
-                        'Total Expense',
-                        NumberFormat.currency(symbol: '\$')
-                            .format(metrics['totalExpense']),
-                        Colors.red.shade300),
-                  ],
+                Text(
+                  'Total Balance',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                // Net Balance and Savings Rate
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMetricColumn(
-                        'Net Balance',
-                        NumberFormat.currency(symbol: '\$')
-                            .format(metrics['netBalance']),
-                        metrics['netBalance'] >= 0
-                            ? Colors.blue.shade300
-                            : Colors.orange.shade300),
-                    _buildMetricColumn(
-                        'Savings Rate',
-                        '${metrics['savingsRate'].toStringAsFixed(1)}%',
-                        Colors.purple.shade300),
-                  ],
+                Text(
+                  currencyProvider.formatCurrency(metrics['totalBalance']),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: metrics['netBalance'] >= 0
+                        ? Colors.green.shade700
+                        : Colors.red.shade700,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                // Highest Categories
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMetricColumn(
-                        'Highest Income',
-                        '${metrics['highestIncomeCategory']}\n\$${NumberFormat.compact().format(metrics['highestIncome'])}',
-                        Colors.green.shade200),
-                    _buildMetricColumn(
-                        'Highest Expense',
-                        '${metrics['highestExpenseCategory']}\n\$${NumberFormat.compact().format(metrics['highestExpense'])}',
-                        Colors.red.shade200),
-                  ],
-                ),
-                const SizedBox(height: 16),
               ],
             ),
+          ),
+          TextButton(
+            onPressed: () => _showDetailedSummaryBottomSheet(metrics),
+            child: const Text('View Details'),
           ),
         ],
       ),
     );
   }
 
-  // Helper method to build metric columns
-  Widget _buildMetricColumn(String title, String value, Color color) {
+  void _showDetailedSummaryBottomSheet(Map<String, dynamic> metrics) {
+    final currencyProvider =
+        Provider.of<CurrencyProvider>(context, listen: false);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => ListView(
+          controller: scrollController,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 5,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Detailed Financial Summary',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio: 1.5,
+                    children: [
+                      _buildMetricColumnWithIcon(
+                        'Total Balance',
+                        currencyProvider
+                            .formatCurrency(metrics['totalBalance']),
+                        Icons.account_balance_wallet,
+                        Colors.blue.shade300,
+                      ),
+                      _buildMetricColumnWithIcon(
+                        'Net Worth',
+                        currencyProvider.formatCurrency(metrics['netBalance']),
+                        metrics['netBalance'] >= 0
+                            ? Icons.trending_up
+                            : Icons.trending_down,
+                        metrics['netBalance'] >= 0
+                            ? Colors.green.shade300
+                            : Colors.red.shade300,
+                      ),
+                      _buildMetricColumnWithIcon(
+                        'Total Income',
+                        currencyProvider.formatCurrency(metrics['totalIncome']),
+                        Icons.arrow_upward,
+                        Colors.green.shade300,
+                      ),
+                      _buildMetricColumnWithIcon(
+                        'Total Expense',
+                        currencyProvider
+                            .formatCurrency(metrics['totalExpense']),
+                        Icons.arrow_downward,
+                        Colors.red.shade300,
+                      ),
+                      _buildMetricColumnWithIcon(
+                        'Savings Rate',
+                        '${metrics['savingsRate'].toStringAsFixed(1)}%',
+                        Icons.savings,
+                        Colors.purple.shade300,
+                      ),
+                      _buildMetricColumnWithIcon(
+                        'Highest Expense',
+                        '${metrics['highestExpenseCategory']}\n${currencyProvider.formatCurrency(metrics['highestExpense'])}',
+                        Icons.money_off,
+                        Colors.orange.shade300,
+                      ),
+                      _buildMetricColumnWithIcon(
+                          'Highest Income',
+                          '${metrics['highestIncomeCategory']}\n${currencyProvider.formatCurrency(metrics['highestIncome'])}',
+                          Icons.money_outlined,
+                          Colors.green.shade200),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricColumnWithIcon(
+      String title, String value, IconData icon, Color color) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.4,
+      margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Icon(icon, color: color, size: 30),
+          const SizedBox(height: 8),
           Text(
             title,
             style: TextStyle(
               fontSize: 12,
-              color: color,
+              color: color.darken(0.2),
               fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           Text(
             value,
             style: TextStyle(
               fontSize: 14,
-              color: color.darken(0.3),
+              color: color.darken(0.4),
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
