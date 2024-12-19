@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/common/custom_appbar.dart';
@@ -29,6 +30,7 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
     with SingleTickerProviderStateMixin {
   List<TransactionModel> _transactions = [];
   List<TransactionModel> _filteredTransactions = [];
+  bool _isLoading = true;
   String _selectedPeriod = 'Overall';
   DateTimeRange? _customDateRange;
   String _selectedChartType = 'Expense';
@@ -40,11 +42,15 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
   @override
   void initState() {
     super.initState();
-    if (widget.allTransactions.isNotEmpty) {
-      _transactions = widget.allTransactions;
-      _filteredTransactions = _transactions;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _transactions = widget.allTransactions;
+        _filteredTransactions = _transactions;
+        _isLoading = false; // Mark loading as complete
+      });
+    });
 
+    // Animation setup remains the same
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -160,6 +166,48 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: SpinKitThreeBounce(
+            color: AppTheme.primaryDarkColor,
+            size: 20.0,
+          ),
+        ),
+      );
+    }
+    if (_transactions.isEmpty) {
+      return Scaffold(
+        appBar: const CustomAppBar(title: "Financial Insights"),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.money_off_outlined,
+                color: Colors.grey.shade400,
+                size: 100,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No Financial Data Available',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 18,
+                ),
+              ),
+              Text(
+                'Add some transactions to see insights',
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       // backgroundColor: const Color.fromARGB(255, 184, 220, 245),
       appBar: const CustomAppBar(title: "Financial Insights"),
@@ -294,6 +342,21 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
   }
 
   Map<String, dynamic> _calculateSummaryMetrics() {
+    if (_filteredTransactions.isEmpty) {
+      return {
+        'totalIncome': 0.0,
+        'totalExpense': 0.0,
+        'netBalance': widget.userModel.totalBalance,
+        'savingsRate': 0.0,
+        'highestIncome': 0.0,
+        'highestExpense': 0.0,
+        'highestIncomeCategory': 'N/A',
+        'highestExpenseCategory': 'N/A',
+        'incomeCategories': <String, double>{},
+        'expenseCategories': <String, double>{},
+        'totalBalance': widget.userModel.totalBalance,
+      };
+    }
     double totalIncome = 0.0;
     double totalExpense = 0.0;
     double highestIncome = 0.0;
@@ -561,6 +624,37 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
   }
 
   Widget _buildChartsContent() {
+    if (_filteredTransactions.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sentiment_dissatisfied,
+              color: Colors.grey.shade400,
+              size: 80,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No transactions found',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 18,
+              ),
+            ),
+            Text(
+              'Try selecting a different time period or add some transactions',
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -631,6 +725,22 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
             transaction.category, (value) => value + transaction.amount,
             ifAbsent: () => transaction.amount);
       }
+    }
+
+    // If no transactions or no category totals, show an empty state
+    if (categoryTotals.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            'No transactions in selected category',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
     }
 
     List<BarChartGroupData> barGroups = categoryTotals.entries.map((entry) {
@@ -741,6 +851,22 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
       }
     }
 
+    // If no transactions, show an empty state
+    if (_filteredTransactions.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            'No transactions available',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: SizedBox(
@@ -832,6 +958,22 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
         monthlyTotals.update(month, (value) => value + transaction.amount,
             ifAbsent: () => transaction.amount);
       }
+    }
+
+    // If no monthly transactions, show an empty state
+    if (monthlyTotals.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            'No monthly transactions available',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
     }
 
     List<FlSpot> spots = List.generate(12, (index) {

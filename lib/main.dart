@@ -1,9 +1,13 @@
+import 'dart:io';
+
+import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-
 import 'core/constants/app_colors.dart';
 import 'core/provider/currency_provider.dart';
 import 'core/provider/theme_provider.dart';
@@ -21,6 +25,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseAuth.instance.setLanguageCode(Platform.localeName.split('_')[0]);
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const MyApp());
 }
@@ -32,9 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (context) =>
-                ChatState()), // Assuming ChatState is defined in the chat_provider
+        ChangeNotifierProvider(create: (context) => ChatState()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => CurrencyProvider()),
       ],

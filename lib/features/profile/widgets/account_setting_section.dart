@@ -9,7 +9,8 @@ class AccountSettingsSection extends StatelessWidget {
   final VoidCallback onCurrencyExchangeTap;
   final VoidCallback onAboutTap;
 
-  const AccountSettingsSection({super.key, 
+  const AccountSettingsSection({
+    super.key,
     required this.onPrivacyTap,
     required this.onSignOutTap,
     required this.onCurrencyExchangeTap,

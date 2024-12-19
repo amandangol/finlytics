@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -377,6 +378,7 @@ class _ProfilePageState extends State<ProfilePage>
     TextEditingController passwordController = TextEditingController();
     String? emailErrorMessage;
     String? passwordErrorMessage;
+    bool _isDeleting = false; // Add a flag to track deletion process
 
     showDialog(
       context: context,
@@ -393,101 +395,122 @@ class _ProfilePageState extends State<ProfilePage>
               additionalMessage:
                   "This will remove all your data across all devices.",
               actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      emailErrorMessage = null;
-                      passwordErrorMessage = null;
-                    });
-
-                    if (emailController.text.isEmpty) {
-                      setState(() {
-                        emailErrorMessage = "Email cannot be empty.";
-                      });
-                    } else if (emailController.text != widget.user.email) {
-                      setState(() {
-                        emailErrorMessage =
-                            "Incorrect email. Please try again.";
-                      });
-                    } else if (passwordController.text.isEmpty) {
-                      setState(() {
-                        passwordErrorMessage = "Password cannot be empty.";
-                      });
-                    } else {
-                      try {
-                        bool isReauthenticated =
-                            await _authService.reauthenticateUser(
-                          emailController.text,
-                          passwordController.text,
-                        );
-
-                        if (isReauthenticated) {
-                          // Delete user data first
-                          await _userDataService.deleteUserData(widget.user.id);
-
-                          // Then delete the user account
-                          await _authService.deleteUserAccount();
-
-                          // Sign out and navigate to auth page
-                          _signOut(context);
-
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: const Row(
-                              children: [
-                                Icon(Icons.check_circle_outline,
-                                    color: Colors.white),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    "All data has been reset successfully",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            backgroundColor: Colors.black,
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            margin: const EdgeInsets.all(16),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                          ));
-                        } else {
+                _isDeleting
+                    ? const Center(
+                        child: SpinKitFadingCircle(
+                          color: DialogTheme.warningColor,
+                        ),
+                      )
+                    : ElevatedButton(
+                        onPressed: () async {
                           setState(() {
-                            passwordErrorMessage =
-                                "Incorrect password. Please try again.";
+                            emailErrorMessage = null;
+                            passwordErrorMessage = null;
                           });
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Error deleting account: $e"),
-                            backgroundColor: Colors.red,
+
+                          if (emailController.text.isEmpty) {
+                            setState(() {
+                              emailErrorMessage = "Email cannot be empty.";
+                            });
+                          } else if (emailController.text !=
+                              widget.user.email) {
+                            setState(() {
+                              emailErrorMessage =
+                                  "Incorrect email. Please try again.";
+                            });
+                          } else if (passwordController.text.isEmpty) {
+                            setState(() {
+                              passwordErrorMessage =
+                                  "Password cannot be empty.";
+                            });
+                          } else {
+                            try {
+                              // Set loading state
+                              setState(() {
+                                _isDeleting = true;
+                              });
+
+                              bool isReauthenticated =
+                                  await _authService.reauthenticateUser(
+                                emailController.text,
+                                passwordController.text,
+                              );
+
+                              if (isReauthenticated) {
+                                // Delete user data first
+                                await _userDataService
+                                    .deleteUserData(widget.user.id);
+
+                                // Then delete the user account
+                                await _authService.deleteUserAccount();
+
+                                // Sign out and navigate to auth page
+                                _signOut(context);
+
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content: const Row(
+                                    children: [
+                                      Icon(Icons.check_circle_outline,
+                                          color: Colors.white),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          "Account has been deleted successfully",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.black,
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                ));
+                              } else {
+                                setState(() {
+                                  _isDeleting = false;
+                                  passwordErrorMessage =
+                                      "Incorrect password. Please try again.";
+                                });
+                              }
+                            } catch (e) {
+                              setState(() {
+                                _isDeleting = false;
+                              });
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Error deleting account: $e"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: DialogTheme.warningColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: DialogTheme.warningColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text("Delete Account"),
-                ),
+                        ),
+                        child: const Text("Delete Account"),
+                      ),
               ],
               customContent: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
+                    enabled: !_isDeleting, // Disable when deleting
                     controller: emailController,
                     decoration: InputDecoration(
                       labelText: "Confirm Email",
@@ -501,6 +524,7 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                   const SizedBox(height: 10),
                   TextField(
+                    enabled: !_isDeleting, // Disable when deleting
                     controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(

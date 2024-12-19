@@ -14,6 +14,7 @@ class AccountsDialog extends StatefulWidget {
   final Function(String) onRenameAccount;
   final Function(String) onDeleteAccount;
   final VoidCallback onSelectTotalBalance;
+  final Account? selectedAccount;
 
   const AccountsDialog({
     super.key,
@@ -24,6 +25,7 @@ class AccountsDialog extends StatefulWidget {
     required this.onRenameAccount,
     required this.onDeleteAccount,
     required this.onSelectTotalBalance,
+    this.selectedAccount,
   });
 
   @override
@@ -305,15 +307,23 @@ class _AccountsDialogState extends State<AccountsDialog> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Total Balance Tile with Improved Design
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.primaryDarkColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: widget.selectedAccount == null
+                      ? const LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.primaryDarkColor
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : LinearGradient(
+                          colors: [Colors.grey[700]!, Colors.grey[800]!],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: const [
                     BoxShadow(
@@ -372,13 +382,27 @@ class _AccountsDialogState extends State<AccountsDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Accounts List with Improved Design
+              // Accounts List
               ...widget.accounts.map((account) {
+                bool isSelected = account == widget.selectedAccount;
                 return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
+                      gradient: isSelected
+                          ? const LinearGradient(
+                              colors: [
+                                AppTheme.primaryColor,
+                                AppTheme.primaryDarkColor
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : const LinearGradient(
+                              colors: [Colors.white, Colors.white],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: const [
                         BoxShadow(
@@ -408,7 +432,11 @@ class _AccountsDialogState extends State<AccountsDialog> {
                                     children: [
                                       Text(
                                         account.name,
-                                        style: AppTheme.textTheme.titleMedium,
+                                        style: AppTheme.textTheme.bodyLarge
+                                            ?.copyWith(
+                                          color:
+                                              isSelected ? Colors.white : null,
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 4),
@@ -418,16 +446,20 @@ class _AccountsDialogState extends State<AccountsDialog> {
                                         style: AppTheme.textTheme.bodyLarge
                                             ?.copyWith(
                                           fontWeight: FontWeight.bold,
-                                          color: AppTheme.primaryColor,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : AppTheme.primaryColor,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 PopupMenuButton<String>(
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.more_vert,
-                                    color: AppTheme.primaryColor,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppTheme.primaryColor,
                                   ),
                                   onSelected: (value) {
                                     switch (value) {

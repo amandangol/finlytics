@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,6 +34,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final TransactionService _transactionService = TransactionService();
   int _selectedIndex = 0;
   bool _isLoadingTransactions = false;
+  bool _isInitializing = true;
 
   User? user;
   UserModel? userModel;
@@ -68,37 +71,61 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future<void> _initializeData() async {
     try {
+      setState(() => _isInitializing = true);
+
       user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
 
-      if (user != null) {
-        UserModel? fetchedUserModel = await _userService.getUserById(user!.uid);
+      // Set language code once
+      await FirebaseAuth.instance
+          .setLanguageCode(Platform.localeName.split('_')[0]);
 
-        if (fetchedUserModel != null) {
-          setState(() {
-            userModel = fetchedUserModel;
-          });
+      // Fetch user data
+      UserModel? fetchedUserModel = await _userService.getUserById(user!.uid);
 
-          // Prompt for username if empty
-          if (userModel!.username.isEmpty) {
-            await promptUsernameInput(user!.uid);
-          }
+      if (fetchedUserModel == null) {
+        // Create user document if not exists
+        await _createUserDocument(user!.uid);
+        fetchedUserModel = await _userService.getUserById(user!.uid);
+      }
 
-          // Fetch transactions for the default period
-          await _fetchTransactionsForPeriod(_selectedPeriod);
-        } else {
-          // Create user document if not exists
-          await _createUserDocument(user!.uid);
+      if (fetchedUserModel != null) {
+        setState(() {
+          userModel = fetchedUserModel;
+          _isInitializing = false;
+        });
+
+        // Prompt for username if empty
+        if (userModel!.username.isEmpty) {
+          await promptUsernameInput(user!.uid);
         }
+
+        // Fetch initial transactions
+        await _fetchTransactionsForPeriod(_selectedPeriod);
       }
     } catch (e) {
       print('Error initializing data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to load data: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isInitializing = false);
+      }
     }
+  }
+
+  Stream<DocumentSnapshot> _getUserStream() {
+    if (user == null) return const Stream.empty();
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .snapshots();
   }
 
   Future<void> getUser() async {
@@ -129,26 +156,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     await FirebaseFirestore.instance.collection('users').doc(userId).set({
       'username': '',
       'email': user?.email,
-      'accounts': [Account(name: 'Main', balance: 0.0).toMap()],
+      'accounts': [], // Start with an empty accounts list
     });
-  }
-
-  Future<void> _refreshData() async {
-    try {
-      // Fetch user data again
-      await getUser();
-
-      // Refresh transactions for the current period
-      await _fetchTransactionsForPeriod(_selectedPeriod);
-    } catch (e) {
-      // Handle any errors during refresh
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to refresh data: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   Future<void> promptUsernameInput(String userId) async {
@@ -157,6 +166,176 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (username.isNotEmpty) {
       await _userService.updateUsername(userId, username);
       await getUser();
+
+      // Immediately prompt for initial account after username is set
+      if (userModel != null && userModel!.accounts.isEmpty) {
+        await _showInitialAccountBottomSheet(userId);
+      }
+    }
+  }
+
+  Future<void> _showInitialAccountBottomSheet(String userId) async {
+    final TextEditingController accountNameController = TextEditingController();
+    final TextEditingController initialBalanceController =
+        TextEditingController();
+
+    // Store context reference before async operations
+    final BuildContext currentContext = context;
+
+    try {
+      final result = await showModalBottomSheet<Map<String, dynamic>>(
+        context: currentContext,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext context) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Setup Your First Account',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Don\'t worry, you can always add, edit, or delete accounts later from the home page.',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: accountNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Account Name',
+                    hintText: 'e.g., Main Account, Savings, Checking',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: initialBalanceController,
+                  decoration: const InputDecoration(
+                    labelText: 'Initial Balance',
+                    hintText: 'Enter your starting balance',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    String name = accountNameController.text.trim();
+                    String balanceText = initialBalanceController.text.trim();
+
+                    // Validate inputs
+                    if (name.isEmpty) {
+                      Navigator.of(context)
+                          .pop({'error': 'Please enter an account name'});
+                      return;
+                    }
+
+                    double? initialBalance = double.tryParse(balanceText);
+                    if (initialBalance == null) {
+                      Navigator.of(context)
+                          .pop({'error': 'Please enter a valid balance'});
+                      return;
+                    }
+
+                    Navigator.of(context).pop({
+                      'name': name,
+                      'balance': initialBalance,
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryDarkColor,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  child: const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pop({'skipped': true}),
+                    child: const Text(
+                      'Skip for now',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Handle the result
+      if (result != null && mounted) {
+        if (result.containsKey('error')) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            SnackBar(content: Text(result['error'])),
+          );
+          return;
+        }
+
+        if (result.containsKey('skipped')) {
+          return;
+        }
+
+        if (result.containsKey('name') && result.containsKey('balance')) {
+          Account newAccount = Account(
+            name: result['name'],
+            balance: result['balance'],
+            initialBalance: result['balance'],
+          );
+
+          await _userService.addAccount(userId, newAccount);
+
+          // Refresh user data
+          await getUser();
+
+          if (mounted) {
+            ErrorUtils.showSnackBar(
+              context: context,
+              message: 'Account "${result['name']}" created successfully!',
+              color: AppTheme.successColor,
+              icon: Icons.check_box_outline_blank,
+            );
+          }
+        }
+      }
+    } finally {
+      // Clean up controllers
+      accountNameController.dispose();
+      initialBalanceController.dispose();
     }
   }
 
@@ -305,26 +484,41 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void _showAccountsDialog() {
-    if (userModel != null && userModel!.accounts.isNotEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) => AccountsDialog(
-          accounts: userModel!.accounts,
-          onAddAccount: _addAccount,
-          onUpdateBalance: _updateBalance,
-          onSelectAccount: _selectAccount,
-          onSelectTotalBalance: _selectTotalBalance,
-          onRenameAccount: _renameAccount,
-          onDeleteAccount: _deleteAccount,
-        ),
-      );
-    } else {
-      ErrorUtils.showSnackBar(
-          color: Colors.red,
-          icon: Icons.error_outline,
+  void _showAccountsDialog() async {
+    // Ensure user model is loaded
+    if (userModel == null) {
+      await getUser(); // Force fetch user data
+    }
+
+    // Check again after fetching
+    if (userModel != null) {
+      if (userModel!.accounts.isEmpty) {
+        // If no accounts exist, show the initial account creation bottom sheet
+        await _showInitialAccountBottomSheet(user!.uid);
+      } else {
+        // Show accounts dialog if accounts exist
+        showDialog(
           context: context,
-          message: 'Accounts not available');
+          builder: (context) => AccountsDialog(
+            accounts: userModel!.accounts,
+            onAddAccount: _addAccount,
+            onUpdateBalance: _updateBalance,
+            onSelectAccount: _selectAccount,
+            onSelectTotalBalance: _selectTotalBalance,
+            onRenameAccount: _renameAccount,
+            onDeleteAccount: _deleteAccount,
+            selectedAccount: selectedAccount,
+          ),
+        );
+      }
+    } else {
+      // Fallback error handling
+      ErrorUtils.showSnackBar(
+        color: Colors.red,
+        icon: Icons.error_outline,
+        context: context,
+        message: 'Unable to load user information. Please try again.',
+      );
     }
   }
 
@@ -466,14 +660,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  Stream<DocumentSnapshot> _getUserStream() {
-    if (user == null) return const Stream.empty();
-    return FirebaseFirestore.instance
-        .collection('users')
-        .doc(user!.uid)
-        .snapshots();
-  }
-
   void _updateTransactionInState(TransactionModel updatedTransaction) {
     setState(() {
       // Update in recent transactions
@@ -497,19 +683,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void _deleteTransactionFromDetailPage(String transactionId) {
-    // Remove from recent transactions
     recentTransactions
         .removeWhere((transaction) => transaction.id == transactionId);
-
-    // Remove from all transactions
     allTransactions
         .removeWhere((transaction) => transaction.id == transactionId);
-
-    // Recalculate overview data
     _calculateOverviewData(
         allTransactions.isNotEmpty ? allTransactions : recentTransactions);
-
-    // Trigger a state rebuild to update the UI
     setState(() {});
   }
 
@@ -519,37 +698,35 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       canPop: _selectedIndex == 0,
       onPopInvoked: (canPop) {
         if (!canPop) {
-          setState(() {
-            _selectedIndex = 0;
-          });
+          setState(() => _selectedIndex = 0);
         }
       },
-      child: StreamBuilder<DocumentSnapshot>(
-        stream: _getUserStream(),
-        builder: (context, snapshot) {
-          // Automatically refresh data when Firestore document changes
-          // if (snapshot.hasData) {
-          //   WidgetsBinding.instance.addPostFrameCallback((_) {
-          //     _initializeData();
-          //   });
-          // }
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        body: _isInitializing
+            ? const Center(
+                child: SpinKitThreeBounce(
+                  color: AppTheme.primaryDarkColor,
+                  size: 20.0,
+                ),
+              )
+            : StreamBuilder<DocumentSnapshot>(
+                stream: _getUserStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
+                    );
+                  }
 
-          return Scaffold(
-            backgroundColor: const Color(0xFFF5F5F5),
-            body: userModel == null
-                ? const Center(
-                    child: SpinKitThreeBounce(
-                      color: AppTheme.primaryDarkColor,
-                      size: 20.0,
-                    ),
-                  )
-                : _buildBody(),
-            bottomNavigationBar: SleekNavigationBar(
-              selectedIndex: _selectedIndex,
-              onItemTapped: _onItemTapped,
-            ),
-          );
-        },
+                  // Use the current state for rendering
+                  return _buildBody();
+                },
+              ),
+        bottomNavigationBar: SleekNavigationBar(
+          selectedIndex: _selectedIndex,
+          onItemTapped: _onItemTapped,
+        ),
       ),
     );
   }
@@ -647,27 +824,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _buildChartsContent() {
-    return FutureBuilder<void>(
-      future: _initializeTransactions(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: SpinKitThreeBounce(
-              color: AppTheme.primaryDarkColor,
-              size: 20.0,
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          // Only pass transactions if they are not empty
-          return FinancialInsightsPage(
-            allTransactions: allTransactions.isNotEmpty ? allTransactions : [],
-            userId: user!.uid,
-            userModel: userModel!,
-          );
-        }
-      },
+    return FinancialInsightsPage(
+      allTransactions: allTransactions,
+      userId: user!.uid,
+      userModel: userModel!,
     );
   }
 }

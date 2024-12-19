@@ -1,7 +1,6 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-
 import '../../../../core/constants/app_colors.dart';
 
 class SleekNavigationBar extends StatelessWidget {
@@ -17,6 +16,7 @@ class SleekNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConvexAppBar(
+      height: 60,
       style: TabStyle.fixedCircle,
       backgroundColor: Colors.white,
       activeColor: AppTheme.primaryDarkColor,

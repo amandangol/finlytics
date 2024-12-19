@@ -31,6 +31,12 @@ class _AuthPageState extends State<AuthPage> {
     });
   }
 
+  Future<void> _resetAuthState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    await FirebaseAuth.instance.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +52,13 @@ class _AuthPageState extends State<AuthPage> {
                 size: 20.0,
               ),
             );
+          }
+
+          // Check for authentication errors
+          if (snapshot.hasError) {
+            print('Auth Stream Error: ${snapshot.error}');
+            _resetAuthState();
+            return const SigninPage();
           }
 
           // User logged in

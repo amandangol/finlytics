@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:finlytics/features/auth/presentation/pages/auth_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,12 +28,18 @@ class _SigninPageState extends State<SigninPage>
   bool _isPasswordObscured = true;
   bool _rememberMe = false;
   bool _isLoading = false;
+  bool _isFirstLogin = false;
 
   late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
+    _initializeAuth();
+
+    // Set Firebase Auth locale if required
+    FirebaseAuth.instance.setLanguageCode('en');
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -47,60 +55,132 @@ class _SigninPageState extends State<SigninPage>
     super.dispose();
   }
 
-  void _login() async {
+  Future<void> _initializeAuth() async {
+    // Set language code
+    await FirebaseAuth.instance
+        .setLanguageCode(Platform.localeName.split('_')[0]);
+
+    // Check if this is first login
+    final prefs = await SharedPreferences.getInstance();
+    _isFirstLogin = !(prefs.getBool('hasLoggedInBefore') ?? false);
+  }
+
+  Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ErrorUtils.showSnackBar(
-          context: context,
-          message: 'Please enter email and password',
-          color: AppTheme.errorColor,
-          icon: Icons.error_outline);
-
+        context: context,
+        message: 'Please enter email and password',
+        color: AppTheme.errorColor,
+        icon: Icons.error_outline,
+      );
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
+      // Sign in with email and password
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
-        password: _passwordController.text,
+        password: _passwordController.text.trim(),
       );
 
-      if (userCredential.user != null && !userCredential.user!.emailVerified) {
-        ErrorUtils.showSnackBar(
+      if (userCredential.user != null) {
+        if (!userCredential.user!.emailVerified) {
+          ErrorUtils.showSnackBar(
             context: context,
             message: 'Please verify your email',
             color: AppTheme.errorColor,
-            icon: Icons.error_outline);
-        return;
+            icon: Icons.error_outline,
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        // Set login state and first login flag
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setBool('hasLoggedInBefore', true);
+
+        // Navigate to auth page
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AuthPage()),
+          );
+        }
       }
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthPage()),
-      );
     } on FirebaseAuthException catch (e) {
-      _handleLoginError(e);
+      // Special handling for first-time login errors
+      if (_isFirstLogin && e.code == 'invalid-credential') {
+        // Wait briefly and retry authentication
+        await Future.delayed(const Duration(milliseconds: 500));
+        try {
+          final retryCredential = await _auth.signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+
+          if (retryCredential.user != null) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('isLoggedIn', true);
+            await prefs.setBool('hasLoggedInBefore', true);
+
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AuthPage()),
+              );
+            }
+            return;
+          }
+        } catch (retryError) {
+          _handleLoginError(e);
+        }
+      } else {
+        _handleLoginError(e);
+      }
+    } catch (e) {
+      ErrorUtils.showSnackBar(
+        context: context,
+        message: 'An unexpected error occurred. Please try again.',
+        color: AppTheme.errorColor,
+        icon: Icons.error_outline,
+      );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   void _handleLoginError(FirebaseAuthException e) {
-    print(
-        'Firebase Auth Error Code: ${e.code}'); // Add this line to log the exact error code
-    print(
-        'Firebase Auth Error Message: ${e.message}'); // This can provide more details
+    print('Firebase Auth Error Code: ${e.code}');
+    print('Firebase Auth Error Message: ${e.message}');
 
-    String errorMessage = ErrorUtils.getAuthErrorMessage(e.code);
+    String errorMessage;
+    switch (e.code) {
+      case 'invalid-credential':
+        errorMessage = _isFirstLogin
+            ? 'First-time login in progress. Please try again.'
+            : 'The email or password is incorrect. Please try again.';
+        break;
+      case 'user-not-found':
+        errorMessage = 'No user found with this email. Please sign up.';
+        break;
+      case 'wrong-password':
+        errorMessage = 'Incorrect password. Please try again.';
+        break;
+      default:
+        errorMessage = 'An error occurred. Please try again.';
+    }
+
     ErrorUtils.showSnackBar(
-        context: context,
-        message: errorMessage,
-        color: AppTheme.errorColor,
-        icon: Icons.error_outline);
+      context: context,
+      message: errorMessage,
+      color: AppTheme.errorColor,
+      icon: Icons.error_outline,
+    );
   }
 
   @override

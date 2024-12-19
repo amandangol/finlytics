@@ -6,7 +6,8 @@ class SettingsCard extends StatelessWidget {
   final VoidCallback onTap;
   final bool isDestructive;
 
-  const SettingsCard({super.key, 
+  const SettingsCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.onTap,

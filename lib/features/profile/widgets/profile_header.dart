@@ -51,7 +51,7 @@ class ProfileHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 _ProfileUserInfo(
-                  username: user.username,
+                  username: user.username.isEmpty ? "User" : user.username,
                   email: user.email,
                   onUsernameTap: isEditable ? onUsernameTap : null,
                   isEditable: isEditable,
@@ -176,13 +176,15 @@ class _ProfileUserInfo extends StatelessWidget {
           children: [
             Text(
               username,
+              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: usernameStyle ??
                   const TextStyle(
                     color: Colors.white,
-                    fontSize: 22,
+                    fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
+              maxLines: 1,
             ),
             if (isEditable && onUsernameTap != null)
               IconButton(
@@ -201,7 +203,7 @@ class _ProfileUserInfo extends StatelessWidget {
           style: emailStyle ??
               const TextStyle(
                 color: Colors.white70,
-                fontSize: 16,
+                fontSize: 14,
               ),
         ),
       ],

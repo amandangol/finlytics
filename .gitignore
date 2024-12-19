@@ -1,77 +1,57 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# Visual Studio Code
-.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter-specific files
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
+build/
+android/app/debug.keystore
 
-# Symbolication related
-app.*.symbols
+# iOS-specific files
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
 
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Firebase related
-firebase.json
-firestore.indexes.json
-firestore.rules
-database.rules.json
-# Add google-services.json to ignore
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-
-# Firebase Dart options file
-lib/firebase_options.dart
-
-# Dialogflow related
-assets/dialog_flow_auth.json
-
-# Local configuration files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Flutter dependencies
-packages/*
-
-# macOS related
+# macOS-specific files
 macos/Flutter/ephemeral/
 macos/Flutter/Flutter.podspec
-macos/Flutter/GeneratedPluginRegistrant.swift
 
-# Windows related
-windows/flutter/ephemeral/
+# Windows-specific files
+windows/Flutter/ephemeral/
 
-# Linux related
+# Linux-specific files
 linux/flutter/ephemeral/
+
+# Web-specific files
+web/.dart_tool/
+web/build/
+
+# Environment files
+.env
+.env.*
+
+# IntelliJ/Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Generated files
+*.log
+*.tmp
+*.swp
+*.lock
+*.DS_Store
+
+# Firebase and other sensitive files
+google-services.json
+firebase_app_id_file.json
+GoogleService-Info.plist

@@ -30,7 +30,7 @@ class MessageInputField extends StatelessWidget {
 
     return Container(
       transform: transform,
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 14.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -93,7 +93,7 @@ class MessageInputField extends StatelessWidget {
               ),
               const SizedBox(width: 8.0),
               Container(
-                margin: const EdgeInsets.fromLTRB(2, 2, 4, 22),
+                margin: const EdgeInsets.fromLTRB(2, 0, 4, 0),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(

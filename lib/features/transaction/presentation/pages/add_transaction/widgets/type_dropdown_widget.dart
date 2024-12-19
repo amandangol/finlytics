@@ -19,7 +19,7 @@ class TypeDropdownWidget extends StatelessWidget {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: decoration,
-      dropdownColor: AppTheme.cardColor,
+      dropdownColor: AppTheme.cardColor, 
       icon: const Icon(Icons.arrow_drop_down, color: AppTheme.primaryColor),
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppTheme.darkTextColor,
