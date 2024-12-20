@@ -44,7 +44,19 @@ Finlytics is an advanced, AI-powered Flutter application designed to transform p
   - Savings optimization suggestions
   - Comprehensive financial health assessment
 
-### 5. Secure Authentication & Privacy
+### 5. Currency Format Customization  
+- **Personalized Currency Display**  
+  - View balances and transactions in your preferred currency format  
+  - Support for various regional number and currency formats  
+
+- **Enhanced Financial Reports**  
+  - Tailored reporting with customizable currency display options  
+  - Consistent formatting for improved readability  
+
+- **User-Friendly Settings**  
+  - Easy-to-configure currency format preferences  
+
+### 6. Secure Authentication & Privacy
 - **Firebase-Powered Security**
   - Robust user authentication
   - Secure data storage

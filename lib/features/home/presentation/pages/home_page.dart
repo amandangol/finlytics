@@ -327,13 +327,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               context: context,
               message: 'Account "${result['name']}" created successfully!',
               color: AppTheme.successColor,
-              icon: Icons.check_box_outline_blank,
+              icon: Icons.check_circle_outline,
             );
           }
         }
       }
     } finally {
-      // Clean up controllers
       accountNameController.dispose();
       initialBalanceController.dispose();
     }

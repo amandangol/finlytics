@@ -54,7 +54,6 @@ class _AuthPageState extends State<AuthPage> {
             );
           }
 
-          // Check for authentication errors
           if (snapshot.hasError) {
             print('Auth Stream Error: ${snapshot.error}');
             _resetAuthState();

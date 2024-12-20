@@ -32,6 +32,7 @@ class _ProfilePageState extends State<ProfilePage>
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  bool _isSigningOut = false;
 
   @override
   void initState() {
@@ -326,20 +327,74 @@ class _ProfilePageState extends State<ProfilePage>
 
   void _signOut(BuildContext context) async {
     try {
+      setState(() {
+        _isSigningOut = true;
+      });
+
       await _authService.signOut();
+
+      // Show success snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Successfully signed out',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.black,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ));
+      }
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const AuthPage()),
         (route) => false,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Failed to sign out"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
+      setState(() {
+        _isSigningOut = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Failed to sign out: $e',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
-      );
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ));
     }
   }
 
@@ -353,20 +408,27 @@ class _ProfilePageState extends State<ProfilePage>
           message: "Are you sure you want to sign out of Finlytics?",
           icon: Icons.exit_to_app,
           actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _signOut(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: DialogTheme.infoColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text("Sign Out"),
-            ),
+            _isSigningOut
+                ? const Center(
+                    child: SpinKitFadingCircle(
+                      color: DialogTheme.infoColor,
+                      size: 24,
+                    ),
+                  )
+                : ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _signOut(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: DialogTheme.infoColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text("Sign Out"),
+                  ),
           ],
         );
       },

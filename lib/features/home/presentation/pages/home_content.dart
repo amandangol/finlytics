@@ -84,6 +84,7 @@ class _HomeContentState extends State<HomeContent>
               pinned: true,
               backgroundColor: AppTheme.surfaceColor,
               flexibleSpace: FlexibleSpaceBar(
+                // collapseMode: CollapseMode.parallax,
                 centerTitle: true,
                 titlePadding: const EdgeInsets.only(bottom: 16),
                 title: const Text(
