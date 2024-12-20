@@ -20,6 +20,8 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Dynamic transaction filtering across various time periods
   - Detailed performance metrics and visual representations
 
+    https://github.com/user-attachments/assets/92ddb1ae-e387-4a84-95cf-5d94b2c3c168
+
 ### 2. Advanced Expense Tracking
 - **Seamless Transaction Management**
   - Add, edit, and delete transactions with ease
@@ -29,6 +31,8 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Intelligent expense validation
   - Real-time balance checks
   - Overdraft prevention mechanisms
+
+    https://github.com/user-attachments/assets/06b4c561-ac97-4453-a1b4-af5fe06c1a71
 
 ### 3. Powerful Data Visualization
 - **Advanced Charting Capabilities**
@@ -40,6 +44,8 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Color-coded metrics for instant comprehension
   - Responsive design across devices
 
+    https://github.com/user-attachments/assets/2962c3b4-2832-4279-91a7-10e212f034f2
+
 ### 4. AI-Powered Financial Assistant
 - **Gemini AI Integration**
   - Personalized financial advice
@@ -50,10 +56,14 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Savings optimization suggestions
   - Comprehensive financial health assessment
 
+    https://github.com/user-attachments/assets/bab5b96b-a2e0-4219-b935-304701fe799a
+
 ### 5. Currency Format Customization  
 - **Personalized Currency Display**  
   - View balances and transactions in your preferred currency format  
-  - Support for various regional number and currency formats  
+  - Support for various regional number and currency formats
+
+    https://github.com/user-attachments/assets/10a1e82f-f98d-4151-b825-257b461bcd65
 
 - **Enhanced Financial Reports**  
   - Tailored reporting with customizable currency display options  
