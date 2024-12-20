@@ -12,6 +12,10 @@ https://github.com/user-attachments/assets/64ed372e-d5ad-4653-b226-b3253d275837
 
 https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
 
+## Download APK for Android from here,
+
+[Finlytics APK](https://drive.google.com/file/d/1NCDUPI1dZ1m04Aes8pPu43SY-JDvEDGD/view?usp=sharing)
+
 ## 🚀 Key Features
 
 ### 1. Comprehensive Financial Dashboard
