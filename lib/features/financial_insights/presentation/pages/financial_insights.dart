@@ -23,6 +23,7 @@ class FinancialInsightsPage extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _FinancialInsightsPageState createState() => _FinancialInsightsPageState();
 }
 
@@ -37,7 +38,6 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
 
   // Animation controller for smooth transitions
   late AnimationController _animationController;
-  late Animation<double> _animation;
 
   @override
   void initState() {
@@ -50,15 +50,9 @@ class _FinancialInsightsPageState extends State<FinancialInsightsPage>
       });
     });
 
-    // Animation setup remains the same
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
-    );
-
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
     );
 
     _animationController.forward();

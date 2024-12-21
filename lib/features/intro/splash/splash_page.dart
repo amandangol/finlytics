@@ -17,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _scaleAnimation;
 
-  bool _isLoading = true;
   String? _errorMessage;
 
   @override
@@ -71,7 +70,6 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Something went wrong. Please restart the app.';
-        _isLoading = false;
       });
     }
   }

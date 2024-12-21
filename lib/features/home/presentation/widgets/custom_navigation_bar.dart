@@ -24,7 +24,7 @@ class SleekNavigationBar extends StatelessWidget {
       initialActiveIndex: selectedIndex,
       items: const [
         TabItem(icon: LucideIcons.home, title: 'Home'),
-        TabItem(icon: LucideIcons.barChart3, title: 'Charts'),
+        TabItem(icon: LucideIcons.barChart3, title: 'Insights'),
         TabItem(icon: LucideIcons.bookPlus, title: 'Add'),
         TabItem(icon: LucideIcons.bot, title: 'FinlyticsAI'),
         TabItem(icon: LucideIcons.settings, title: 'Settings'),
