@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../core/common/custom_appbar.dart';
+import '../../../core/common/custom_appbar.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   PrivacyPolicyPage({super.key});
 
-  // GitHub repository link - update as needed
   final Uri _githubUrl = Uri.parse('https://github.com/amandangol/finlytics');
 
   // Method to launch URL

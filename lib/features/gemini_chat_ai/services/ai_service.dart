@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:finlytics/features/auth/services/user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -283,7 +284,12 @@ class AiService {
 
   Future<String> _prepareEnhancedQuery(
       String originalQuery, String userId) async {
-    // Fetch recent transactions and financial metrics
+    final userService = UserService();
+    final userProfile = await userService.getUserById(userId);
+
+    if (userProfile == null) {
+      throw Exception('User not found');
+    }
     List<Map<String, dynamic>> recentTransactions =
         await fetchRecentTransactions(userId);
     Map<String, dynamic> financialMetrics =
@@ -292,22 +298,35 @@ class AiService {
     String transactionsContext =
         _formatTransactionsForGemini(recentTransactions);
     String metricsContext = _formatMetricsForGemini(financialMetrics);
+    String username = userProfile.username;
 
     return """
-    You are a financial assistant for my personal finance app, *FinlyticsAI*. 
-    This app helps users manage budgets, track transactions, and improve financial habits.
+  You are FinlyticsAI, a personal finance assistant. Your capabilities include:
+  1. Analyzing transactions and spending patterns
+  2. Providing budgeting advice based on actual spending history
+  3. Tracking financial metrics and explaining their meaning
+  4. Suggesting ways to improve financial habits based on transaction data
+  5. Managing accounts and their balances
 
-    Recent Transactions Context: 
-    ${transactionsContext.isEmpty ? "No recent transactions found." : transactionsContext}
+  Current User Information:
+  - Username: ${username}
+  - Transaction History: ${transactionsContext.isEmpty ? "No recent transactions found." : transactionsContext}
+  - Financial Overview: ${metricsContext.isEmpty ? "No financial metrics available." : metricsContext}
 
-    Financial Metrics Context:
-    ${metricsContext.isEmpty ? "No financial metrics available." : metricsContext}
+  Style Guidelines:
+  - Focus only on features available in the app
+  - Provide specific advice based on their transaction history and metrics
+  - Keep responses concise and actionable
+  - Do not suggest features or actions that aren't supported by the app
 
-    User Query: "$originalQuery"
+  User Query: "$originalQuery"
 
-    Provide a detailed, actionable, and context-aware response based on the user's financial activity and query. 
-    Ensure suggestions align with the app's capabilities and the user's specific financial situation.
-    """;
+  Provide a response that:
+  1. Directly addresses the user's question
+  2. Uses their financial data when relevant
+  3. Suggests only actions that can be taken within the app
+  4. Is specific to their financial situation
+  """;
   }
 
   // Format financial metrics for Gemini context
