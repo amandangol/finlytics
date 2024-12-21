@@ -1,7 +1,6 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
+// import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../../../models/account_model.dart';
 import '../../../models/user_model.dart';
 
@@ -53,77 +52,77 @@ class UserService {
     });
   }
 
-  Future updateProfileImage({
-    required String userId,
-    required File imageFile,
-  }) async {
-    try {
-      // Validate file
-      if (!imageFile.existsSync() || imageFile.lengthSync() == 0) {
-        throw Exception('Invalid image file');
-      }
+  // Future updateProfileImage({
+  //   required String userId,
+  //   required File imageFile,
+  // }) async {
+  //   try {
+  //     // Validate file
+  //     if (!imageFile.existsSync() || imageFile.lengthSync() == 0) {
+  //       throw Exception('Invalid image file');
+  //     }
 
-      // Compress image before upload
-      final compressedFile = await compressImage(imageFile);
+  //     // Compress image before upload
+  //     final compressedFile = await compressImage(imageFile);
 
-      // Generate unique filename
-      final filename =
-          'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+  //     // Generate unique filename
+  //     final filename =
+  //         'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      // Ensure storage reference exists
-      final storageRef = _storage.ref().child('profile_images/$filename');
+  //     // Ensure storage reference exists
+  //     final storageRef = _storage.ref().child('profile_images/$filename');
 
-      // Upload file directly with await
-      final TaskSnapshot snapshot = await storageRef.putFile(
-        compressedFile,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
+  //     // Upload file directly with await
+  //     final TaskSnapshot snapshot = await storageRef.putFile(
+  //       compressedFile,
+  //       SettableMetadata(contentType: 'image/jpeg'),
+  //     );
 
-      // Get the download URL after successful upload
-      final downloadURL = await snapshot.ref.getDownloadURL();
+  //     // Get the download URL after successful upload
+  //     final downloadURL = await snapshot.ref.getDownloadURL();
 
-      // Update Firestore
-      await _firestore.collection('users').doc(userId).update({
-        'profileImageUrl': downloadURL,
-      });
+  //     // Update Firestore
+  //     await _firestore.collection('users').doc(userId).update({
+  //       'profileImageUrl': downloadURL,
+  //     });
 
-      // Fetch and return updated user
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      return UserModel.fromDocument(userDoc);
-    } on FirebaseException catch (e) {
-      print('Firebase upload error: ${e.code} - ${e.message}');
-      throw Exception('Image upload failed: ${e.message}');
-    } catch (e) {
-      print('Unexpected profile image upload error: $e');
-      throw Exception('Failed to update profile image');
-    }
-  }
+  //     // Fetch and return updated user
+  //     final userDoc = await _firestore.collection('users').doc(userId).get();
+  //     return UserModel.fromDocument(userDoc);
+  //   } on FirebaseException catch (e) {
+  //     print('Firebase upload error: ${e.code} - ${e.message}');
+  //     throw Exception('Image upload failed: ${e.message}');
+  //   } catch (e) {
+  //     print('Unexpected profile image upload error: $e');
+  //     throw Exception('Failed to update profile image');
+  //   }
+  // }
 
   // Add image compression method
-  Future<File> compressImage(File file) async {
-    try {
-      // Compress the image and return the result or the original file if compression fails
-      final XFile? result = await FlutterImageCompress.compressAndGetFile(
-        file.absolute.path,
-        '${file.path}_compressed.jpg', // Create a new file for compressed image
-        quality: 70,
-        minWidth: 800,
-        minHeight: 800,
-      );
+  // Future<File> compressImage(File file) async {
+  //   try {
+  //     // Compress the image and return the result or the original file if compression fails
+  //     final XFile? result = await FlutterImageCompress.compressAndGetFile(
+  //       file.absolute.path,
+  //       '${file.path}_compressed.jpg', // Create a new file for compressed image
+  //       quality: 70,
+  //       minWidth: 800,
+  //       minHeight: 800,
+  //     );
 
-      // If compression is successful, return the compressed file
-      if (result != null) {
-        return File(result.path); // Convert XFile to File
-      } else {
-        // Return the original file if compression fails
-        return file;
-      }
-    } catch (e) {
-      print('Image compression error: $e');
-      // Return the original file in case of error
-      return file;
-    }
-  }
+  //     // If compression is successful, return the compressed file
+  //     if (result != null) {
+  //       return File(result.path); // Convert XFile to File
+  //     } else {
+  //       // Return the original file if compression fails
+  //       return file;
+  //     }
+  //   } catch (e) {
+  //     print('Image compression error: $e');
+  //     // Return the original file in case of error
+  //     return file;
+  //   }
+  // }
 
   Future removeProfileImage(String userId) async {
     try {
