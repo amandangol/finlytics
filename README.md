@@ -12,6 +12,10 @@ https://github.com/user-attachments/assets/64ed372e-d5ad-4653-b226-b3253d275837
 
 https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
 
+## Download APK for Android from here,
+
+[Finlytics APK](https://drive.google.com/file/d/1emMFQZlqd7uN7qg7Y8ntWAHlf-zh9iLd/view?usp=drive_link)
+
 ## 🚀 Key Features
 
 ### 1. Comprehensive Financial Dashboard
@@ -19,6 +23,8 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Multiple visualization options for comprehensive financial analysis
   - Dynamic transaction filtering across various time periods
   - Detailed performance metrics and visual representations
+
+    https://github.com/user-attachments/assets/92ddb1ae-e387-4a84-95cf-5d94b2c3c168
 
 ### 2. Advanced Expense Tracking
 - **Seamless Transaction Management**
@@ -30,6 +36,8 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Real-time balance checks
   - Overdraft prevention mechanisms
 
+    https://github.com/user-attachments/assets/06b4c561-ac97-4453-a1b4-af5fe06c1a71
+
 ### 3. Powerful Data Visualization
 - **Advanced Charting Capabilities**
   - Income vs. Expense Bar Chart
@@ -39,6 +47,8 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Real-time chart updates
   - Color-coded metrics for instant comprehension
   - Responsive design across devices
+
+    https://github.com/user-attachments/assets/2962c3b4-2832-4279-91a7-10e212f034f2
 
 ### 4. AI-Powered Financial Assistant
 - **Gemini AI Integration**
@@ -50,10 +60,14 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
   - Savings optimization suggestions
   - Comprehensive financial health assessment
 
+    https://github.com/user-attachments/assets/bab5b96b-a2e0-4219-b935-304701fe799a
+
 ### 5. Currency Format Customization  
 - **Personalized Currency Display**  
   - View balances and transactions in your preferred currency format  
-  - Support for various regional number and currency formats  
+  - Support for various regional number and currency formats
+
+    https://github.com/user-attachments/assets/10a1e82f-f98d-4151-b825-257b461bcd65
 
 - **Enhanced Financial Reports**  
   - Tailored reporting with customizable currency display options  
