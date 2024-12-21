@@ -309,7 +309,7 @@ class AiService {
   5. Managing accounts and their balances
 
   Current User Information:
-  - Username: ${username}
+  - Username: $username
   - Transaction History: ${transactionsContext.isEmpty ? "No recent transactions found." : transactionsContext}
   - Financial Overview: ${metricsContext.isEmpty ? "No financial metrics available." : metricsContext}
 

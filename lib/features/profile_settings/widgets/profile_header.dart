@@ -78,10 +78,10 @@ class _ProfileAvatar extends StatelessWidget {
 
   const _ProfileAvatar({
     this.imageUrl,
-    this.onTap,
     this.isEditable = true,
-    this.backgroundColor,
     this.radius = 70,
+    this.backgroundColor,
+    this.onTap,
   });
 
   @override
@@ -142,8 +142,8 @@ class _EditIconButton extends StatelessWidget {
 
   const _EditIconButton({
     required this.onPressed,
-    this.iconColor,
     this.backgroundColor,
+    this.iconColor,
   });
 
   @override
@@ -184,8 +184,8 @@ class _ProfileUserInfo extends StatelessWidget {
     required this.email,
     this.onUsernameTap,
     this.isEditable = true,
-    this.usernameStyle,
     this.emailStyle,
+    this.usernameStyle,
   });
 
   @override

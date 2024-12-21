@@ -28,7 +28,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       'subtitle': 'Your Financial Command Center',
       'description':
           'Get a complete view of your finances with our interactive dashboard. Track income, expenses, and net worth with beautiful visualizations and real-time updates.',
-      'gradientColors': [Color(0xFF1A2B88), Color(0xFF2439B6)],
+      'gradientColors': [const Color(0xFF1A2B88), const Color(0xFF2439B6)],
     },
     {
       'icon': LucideIcons.wallet,
@@ -37,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       'subtitle': 'Every Penny Counts',
       'description':
           'Effortlessly manage transactions across multiple accounts. Smart validation ensures accuracy while preventing overdrafts. Categorize and track every financial move.',
-      'gradientColors': [Color(0xFF14532D), Color(0xFF1F7747)],
+      'gradientColors': [const Color(0xFF14532D), const Color(0xFF1F7747)],
     },
     {
       'icon': LucideIcons.barChart3,
@@ -46,7 +46,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       'subtitle': 'Data-Driven Decisions',
       'description':
           'Transform your financial data into actionable insights with advanced charts and graphs. Compare income vs expenses, track monthly trends, and understand spending patterns.',
-      'gradientColors': [Color(0xFF4B255A), Color(0xFF5E3370)],
+      'gradientColors': [const Color(0xFF4B255A), const Color(0xFF5E3370)],
     },
     {
       'icon': LucideIcons.currency,
@@ -55,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       'subtitle': 'Borderless Finance',
       'description':
           'Seamlessly manage your money with support for multiple currency formats. View balances, transactions, and reports in the currency format that suits your needs.',
-      'gradientColors': [Color(0xFF805600), Color(0xFFBF8C40)],
+      'gradientColors': [const Color(0xFF805600), const Color(0xFFBF8C40)],
     },
     {
       'icon': LucideIcons.brain,
@@ -64,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       'subtitle': 'Powered by Google Gemini',
       'description':
           'Get personalized financial advice and insights from our AI assistant. Receive spending recommendations, future expense forecasts, and smart savings suggestions.',
-      'gradientColors': [Color(0xFF7A1A1A), Color(0xFFB24040)],
+      'gradientColors': [const Color(0xFF7A1A1A), const Color(0xFFB24040)],
     },
   ];
 
@@ -172,7 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                   const SizedBox(height: 24),
                                   // Lottie Animation
                                   Hero(
-                                    tag: 'onboarding_${index}',
+                                    tag: 'onboarding_$index',
                                     child: Lottie.asset(
                                       onboardingPages[index]['lottie'],
                                       height:
@@ -184,7 +184,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                   const SizedBox(height: 32),
                                   // Title with Gradient Effect
                                   ShaderMask(
-                                    shaderCallback: (bounds) => LinearGradient(
+                                    shaderCallback: (bounds) => const LinearGradient(
                                       colors: [Colors.white, Colors.white70],
                                     ).createShader(bounds),
                                     child: Text(

@@ -14,16 +14,16 @@ import '../widgets/account_setting_section.dart';
 import '../widgets/danger_zone_section.dart';
 import '../widgets/profile_header.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfileSettingPage extends StatefulWidget {
   final UserModel user;
 
-  const ProfilePage({super.key, required this.user});
+  const ProfileSettingPage({super.key, required this.user});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ProfileSettingPageState createState() => _ProfileSettingPageState();
 }
 
-class _ProfilePageState extends State<ProfilePage>
+class _ProfileSettingPageState extends State<ProfileSettingPage>
     with SingleTickerProviderStateMixin {
   late UserModel _currentUser;
   final ImagePicker _picker = ImagePicker();
@@ -440,7 +440,7 @@ class _ProfilePageState extends State<ProfilePage>
     TextEditingController passwordController = TextEditingController();
     String? emailErrorMessage;
     String? passwordErrorMessage;
-    bool _isDeleting = false; // Add a flag to track deletion process
+    bool isDeleting = false; // Add a flag to track deletion process
 
     showDialog(
       context: context,
@@ -457,7 +457,7 @@ class _ProfilePageState extends State<ProfilePage>
               additionalMessage:
                   "This will remove all your data across all devices.",
               actions: [
-                _isDeleting
+                isDeleting
                     ? const Center(
                         child: SpinKitFadingCircle(
                           color: DialogTheme.warningColor,
@@ -489,7 +489,7 @@ class _ProfilePageState extends State<ProfilePage>
                             try {
                               // Set loading state
                               setState(() {
-                                _isDeleting = true;
+                                isDeleting = true;
                               });
 
                               bool isReauthenticated =
@@ -539,14 +539,14 @@ class _ProfilePageState extends State<ProfilePage>
                                 ));
                               } else {
                                 setState(() {
-                                  _isDeleting = false;
+                                  isDeleting = false;
                                   passwordErrorMessage =
                                       "Incorrect password. Please try again.";
                                 });
                               }
                             } catch (e) {
                               setState(() {
-                                _isDeleting = false;
+                                isDeleting = false;
                               });
 
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -572,7 +572,7 @@ class _ProfilePageState extends State<ProfilePage>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    enabled: !_isDeleting, // Disable when deleting
+                    enabled: !isDeleting, // Disable when deleting
                     controller: emailController,
                     decoration: InputDecoration(
                       labelText: "Confirm Email",
@@ -586,7 +586,7 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    enabled: !_isDeleting, // Disable when deleting
+                    enabled: !isDeleting, // Disable when deleting
                     controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(

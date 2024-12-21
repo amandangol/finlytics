@@ -13,8 +13,8 @@ import 'features/auth/presentation/pages/signin_page.dart.dart';
 import 'features/gemini_chat_ai/services/chatprovider.dart';
 import 'features/intro/splash/splash_page.dart';
 import 'firebase_options.dart';
-import 'screens/privacy_policy_page.dart';
-import 'screens/terms_conditions_page.dart';
+import 'features/settings/screens/privacy_policy_page.dart';
+import 'features/settings/screens/terms_conditions_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
