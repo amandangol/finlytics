@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/b576f56d-478a-4a25-af6b-eb409ddcf700
 
 ## Download APK for Android from here,
 
-[Finlytics APK](https://drive.google.com/file/d/1emMFQZlqd7uN7qg7Y8ntWAHlf-zh9iLd/view?usp=drive_link)
+[Finlytics APK](https://drive.google.com/file/d/1IGl3u2wx0hcPpob_z-3Be1qoq0oyBJuB/view)
 
 ## 🚀 Key Features
 
